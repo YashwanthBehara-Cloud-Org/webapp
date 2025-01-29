@@ -7,7 +7,7 @@
 - Access to the Spring Boot project's configuration files.
 
 ## Setting up the repository
-Clone this repository using `git clone <repository-url` and then navigate to the directory
+Clone this repository using `git clone <repository-url>` and then navigate to the directory
 
 ## Enviromental Variables
 To run this project, you will need to add the following environment variables to a .env file in the project directory.
