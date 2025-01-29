@@ -16,17 +16,9 @@ To run this project, you will need to add the following environment variables to
 `DB_PASSWORD = <your-database-password>`
 `DB_URL = <your-database-url>`
 
-## Installing Dependencies
-Run the following command to install the project dependencies:
+## Running the application
+Run the spring boot application.java file 
 
-`mvn clean install`
-
-This command will clean the existing builds, resolve Maven dependencies, and compile the project.
-
-## Running the Application
-To start the application, use:
-
-`mvn spring-boot:run`
 
 ## Test the application
 Use postman or curl commands to test various requests
