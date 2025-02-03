@@ -111,7 +111,16 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
-
+		    
+			<!-- Spring Boot Maven Plugin to package as executable JAR -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.cloud.webapp.WebappApplication</mainClass>
+                </configuration>
+            </plugin>
+			
 		</plugins>
 	</build>
 
