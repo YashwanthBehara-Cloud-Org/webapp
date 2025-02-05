@@ -9,9 +9,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-    @ExceptionHandler(DatabaseConnectionException.class)
-    public ResponseEntity<Object> handleDatabaseException(DatabaseConnectionException ex) {
+    @ExceptionHandler(DataBaseConnectionException.class)
+    public ResponseEntity<Object> handleDatabaseException(DataBaseConnectionException ex) {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
                 .header(HttpHeaders.PRAGMA, "no-cache")

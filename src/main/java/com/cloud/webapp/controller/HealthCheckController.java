@@ -1,6 +1,6 @@
 package com.cloud.webapp.controller;
 
-import com.cloud.webapp.exception.DatabaseConnectionException;
+import com.cloud.webapp.exception.DataBaseConnectionException;
 import com.cloud.webapp.service.HealthCheckService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,29 +19,27 @@ public class HealthCheckController {
 
     @GetMapping
     public ResponseEntity<Void> performHealthCheck(HttpServletRequest request) {
+        validateRequest(request);
 
-        // Check if any query parameters are present
+        try {
+            healthCheckService.performHealthCheck();
+        } catch (Exception e) {
+            throw new DataBaseConnectionException("Database connection failed", e);
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+                .header(HttpHeaders.PRAGMA, "no-cache")
+                .build();
+    }
+
+    private void validateRequest(HttpServletRequest request) {
         if (!request.getParameterMap().isEmpty()) {
             throw new IllegalArgumentException("Query parameters are not allowed");
         }
 
-        // Check if Request body is present
         if (request.getContentLengthLong() > 0) {
             throw new IllegalArgumentException("Payload Not Allowed");
         }
-
-        try{
-            healthCheckService.performHealthCheck();
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-                    .header(HttpHeaders.PRAGMA, "no-cache")
-                    .build();
-        }
-
-        //  If Database connection is not successful
-        catch (Exception e){
-            throw new DatabaseConnectionException("Database connection failed", e);
-        }
-
     }
 }
