@@ -49,10 +49,6 @@ echo "Adding $user to $group..."
 sudo usermod -aG $group $user
 echo "$user has been added to $group."
 
-# Add user to the group
-echo "Adding $user to $group..."
-sudo usermod -aG $group $user
-echo "$user has been added to $group."
 
 # Create directory and unzip application
 echo "Creating directory and unzipping application..."

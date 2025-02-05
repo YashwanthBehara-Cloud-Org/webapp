@@ -46,17 +46,29 @@ public class HealthCheckControllerTest {
         doNothing().when(healthCheckService).performHealthCheck();
     }
 
-    //  Invalid methods ( PUT, POST, DELETE )
+    //  Invalid methods ( PUT, POST, DELETE, PATCH )
     @Test
     void testMethodNotAllowed() throws Exception {
         mockMvc.perform(post("/healthz"))
-                .andExpect(status().isMethodNotAllowed());
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate"))
+                .andExpect(header().string(HttpHeaders.PRAGMA, "no-cache"));
 
         mockMvc.perform(put("/healthz"))
-                .andExpect(status().isMethodNotAllowed());
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate"))
+                .andExpect(header().string(HttpHeaders.PRAGMA, "no-cache"));
+        ;
 
         mockMvc.perform(delete("/healthz"))
-                .andExpect(status().isMethodNotAllowed());
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate"))
+                .andExpect(header().string(HttpHeaders.PRAGMA, "no-cache"));;
+
+        mockMvc.perform(patch("/healthz"))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate"))
+                .andExpect(header().string(HttpHeaders.PRAGMA, "no-cache"));;
     }
 
     //  Database connection error
@@ -68,7 +80,9 @@ public class HealthCheckControllerTest {
         mockMvc.perform(get("/healthz"))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof DataBaseConnectionException))
-                .andExpect(result -> assertEquals("Database connection failed", result.getResolvedException().getMessage()));
+                .andExpect(result -> assertEquals("Database connection failed", result.getResolvedException().getMessage()))
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate"))
+                .andExpect(header().string(HttpHeaders.PRAGMA, "no-cache"));
     }
 
     //  GET request with a request payload
@@ -81,7 +95,9 @@ public class HealthCheckControllerTest {
                         .content(jsonData))
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof IllegalArgumentException))
-                .andExpect(result -> assertEquals("Payload Not Allowed", result.getResolvedException().getMessage()));
+                .andExpect(result -> assertEquals("Payload Not Allowed", result.getResolvedException().getMessage()))
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate"))
+                .andExpect(header().string(HttpHeaders.PRAGMA, "no-cache"));;
     }
 
     //  GET request with a query parameter
@@ -92,7 +108,9 @@ public class HealthCheckControllerTest {
                         .param("id", "123"))
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof IllegalArgumentException))
-                .andExpect(result -> assertEquals("Query parameters are not allowed", result.getResolvedException().getMessage()));
+                .andExpect(result -> assertEquals("Query parameters are not allowed", result.getResolvedException().getMessage()))
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate"))
+                .andExpect(header().string(HttpHeaders.PRAGMA, "no-cache"));
     }
 
     // GET - success request

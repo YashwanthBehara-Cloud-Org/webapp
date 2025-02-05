@@ -30,6 +30,7 @@ Use postman or curl commands to test various requests
 - Database connectivity error will be notified by Service Unavailable ( HTTP 503 ) status code
 
 ## Script File
+
 Contains commands to :
 1. Install package updated and upgrades
 2. Install unzip package
