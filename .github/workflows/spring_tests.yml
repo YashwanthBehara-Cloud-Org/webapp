@@ -12,13 +12,12 @@ jobs:
       mysql:
         image: mysql:5.7
         env:
-          MYSQL_ROOT_USER: ${{ secrets.DB_USERNAME }}
           MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
           MYSQL_DATABASE: health_check_db
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root --password=${{ secrets.DB_PASSWORD }}" 
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root --password=${{ secrets.DB_PASSWORD }}"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -35,7 +34,7 @@ jobs:
     - name: Set up environment variables
       run: |
         echo "DB_URL=jdbc:mysql://localhost:3306/health_check_db" >> $GITHUB_ENV
-        echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> $GITHUB_ENV
+        echo "DB_USERNAME=root" >> $GITHUB_ENV
         echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
 
     - name: Wait for MySQL
