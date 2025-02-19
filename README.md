@@ -115,10 +115,59 @@ Contains commands to :
 
 ### Assignment - 3
 
-1. AWS - CLI Setup
-    i. Configure dev and demo profiles with access and secret keys
 
-2. To check if the AWS- CLI Setup is successful
+- **Configure AWS Profiles:**
+  - Configure the dev profile:
+    ```bash
+    aws configure --profile dev
+    # Enter Access key and Secret key
+    ```
+  - Configure the demo profile:
+    ```bash
+    aws configure --profile demo
+    # Enter Access and Secret keys
+    ```
 
-    * Created GetUserPolicy and attached to GetUserGroup and added cli-demo-user to that group
-    * `aws iam get-user --profile demo`
+- **Verify AWS CLI is properly set up:**
+  - Created GetUserPolicy and attached it to GetUserGroup, and added cli-demo-user to that group:
+    ```bash
+    aws iam get-user --profile demo
+    ```
+
+- **Checking if AWS Profiles are Set Up Correctly:**
+  - Navigate to AWS configuration directory and check credentials and configuration:
+    ```bash
+    cd ~/.aws
+    cat credentials  # For secret keys
+    cat config       # For configuration
+    ```
+
+- **Installing and Setting Up Terraform:**
+  - Add the HashiCorp tap and install Terraform:
+    ```bash
+    brew tap hashicorp/tap
+    brew install hashicorp/tap/terraform
+    ```
+  - Initialize and plan Terraform execution:
+    ```bash
+    terraform init
+    terraform plan
+    terraform apply
+    ```
+
+- **Managing Terraform Workspaces:**
+  - Manage workspaces:
+    ```bash
+    terraform workspace new dev         # Creates new workspace
+    terraform workspace select dev     # Selects dev as current workspace
+    terraform workspace delete dev     # Deletes dev workspace
+    terraform workspace show           # Shows current workspace
+    terraform workspace list           # Lists all workspaces
+    ```
+
+- **Planning and Applying Infrastructure with Specific Variable Files:**
+  - Plan and apply using specific variable files:
+    ```bash
+    terraform plan -var-file="var_dev.tfvars"
+    terraform apply -var-file="var_dev.tfvars"
+    ```
