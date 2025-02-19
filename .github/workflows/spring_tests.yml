@@ -18,6 +18,11 @@ jobs:
           MYSQL_DATABASE: health_check_db
         ports:
           - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root --password=${{ secrets.DB_PASSWORD }}" 
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
     - uses: actions/checkout@v2
@@ -34,11 +39,16 @@ jobs:
         echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> $GITHUB_ENV
         echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
     
-    
+    - name: Wait for MySQL
+      run: |
+        echo "Waiting for MySQL..."
+        until mysqladmin ping -h "127.0.0.1" -u root --password=${{ secrets.DB_PASSWORD }} --silent; do
+          sleep 2
+        done
+
     - name: Validate MySQL Connection
       run: |
-        command -v mysql || sudo apt-get update && sudo apt-get install -y mysql-client
-        mysql -h 127.0.0.1 -P 3306 -u ${{ secrets.DB_USERNAME }} -p${{ secrets.DB_PASSWORD }} -e "SHOW DATABASES;"
+        mysql -h 127.0.0.1 -P 3306 -u root -p${{ secrets.DB_PASSWORD }} -e "SHOW DATABASES;"
         if [ $? -ne 0 ]; then
           echo "Failed to connect to MySQL database."
           exit 1
