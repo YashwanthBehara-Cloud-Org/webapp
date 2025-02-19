@@ -37,8 +37,8 @@ jobs:
     
     - name: Validate MySQL Connection
       run: |
-        apt-get update && apt-get install -y mysql-client
-        mysql -h localhost -u ${{ secrets.DB_USERNAME }} -p${{ secrets.DB_PASSWORD }} -e "SHOW DATABASES;" 
+        command -v mysql || sudo apt-get update && sudo apt-get install -y mysql-client
+        mysql -h 127.0.0.1 -P 3306 -u ${{ secrets.DB_USERNAME }} -p${{ secrets.DB_PASSWORD }} -e "SHOW DATABASES;"
         if [ $? -ne 0 ]; then
           echo "Failed to connect to MySQL database."
           exit 1
