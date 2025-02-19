@@ -6,7 +6,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     services:
@@ -32,13 +31,13 @@ jobs:
       with:
         java-version: '17'
         distribution: 'adopt'
-      
+
     - name: Set up environment variables
       run: |
         echo "DB_URL=jdbc:mysql://localhost:3306/health_check_db" >> $GITHUB_ENV
         echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> $GITHUB_ENV
         echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
-    
+
     - name: Wait for MySQL
       run: |
         echo "Waiting for MySQL..."
