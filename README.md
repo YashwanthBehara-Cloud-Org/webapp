@@ -114,3 +114,11 @@ Contains commands to :
 
 
 ### Assignment - 3
+
+1. AWS - CLI Setup
+    i. Configure dev and demo profiles with access and secret keys
+
+2. To check if the AWS- CLI Setup is successful
+
+    * Created GetUserPolicy and attached to GetUserGroup and added cli-demo-user to that group
+    * `aws iam get-user --profile demo`
