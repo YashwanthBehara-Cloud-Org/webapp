@@ -47,7 +47,7 @@ public class HealthCheckControllerTest {
     @Test
     void testMethodNotAllowed() throws Exception {
         mockMvc.perform(post("/healthz"))
-                .andExpect(status().isOk())
+                .andExpect(status().isMethodNotAllowed())
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate"))
                 .andExpect(header().string(HttpHeaders.PRAGMA, "no-cache"));
 
