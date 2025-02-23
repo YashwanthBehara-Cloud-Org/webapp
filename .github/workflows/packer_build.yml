@@ -50,6 +50,9 @@ jobs:
       - name: Install Packer
         uses: hashicorp/setup-packer@main
 
+      - name: Initialize Packer Plugins
+        run: packer init packer/ubuntu.pkr.hcl
+
       - name: Authenticate AWS
         run: aws configure set region us-east-1
 
