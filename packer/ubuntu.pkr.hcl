@@ -40,7 +40,7 @@ build {
   provisioner "shell" {
     inline = [
       "sudo apt update -y",
-      "sudo apt install -y unzip openjdk-17-jdk mysql-server",
+      "sudo apt install -y openjdk-17-jdk mysql-server",
 
       # Start MySQL service
       "sudo systemctl start mysql",
@@ -54,10 +54,6 @@ build {
 
       # Verify the user creation (Optional, for debugging)
       "sudo mysql -e \"SELECT User, Host FROM mysql.user;\"",
-
-      "cd /opt/myapp",
-      "unzip webapp.zip",
-      "rm -f webapp.zip",
 
       "sudo groupadd csye6225",
       "sudo useradd -r -s /usr/sbin/nologin -g csye6225 csye6225",
