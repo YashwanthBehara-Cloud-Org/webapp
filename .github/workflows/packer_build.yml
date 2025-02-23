@@ -48,7 +48,7 @@ jobs:
           path: artifact/
 
       - name: Install Packer
-        uses: hashicorp/setup-packer@v1
+        uses: hashicorp/setup-packer@main
 
       - name: Authenticate AWS
         run: aws configure set region us-east-1
