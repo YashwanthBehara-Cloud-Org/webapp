@@ -28,6 +28,9 @@ jobs:
       - name: Install Packer
         uses: hashicorp/setup-packer@main
 
+      - name: Initialize Packer Plugins
+        run: packer init packer/ubuntu.pkr.hcl
+
       - name: Run Packer Format Check
         run: packer fmt -check -recursive .
 
