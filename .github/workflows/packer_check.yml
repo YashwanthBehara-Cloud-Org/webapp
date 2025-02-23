@@ -1,0 +1,35 @@
+name: Packer Status Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  packer-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set Up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build Application
+        run: |
+          mvn clean package -DskipTests
+          mkdir -p artifact
+          cp target/*.jar artifact/webapp-0.0.1-SNAPSHOT.jar
+
+      - name: Install Packer
+        uses: hashicorp/setup-packer@v1
+
+      - name: Run Packer Format Check
+        run: packer fmt -check -recursive .
+
+      - name: Run Packer Validate (Using Variables File)
+        run: packer validate -var-file=packer/variables.pkr.hcl packer/ubuntu.pkr.hcl
