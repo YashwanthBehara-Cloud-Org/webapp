@@ -80,7 +80,7 @@ build {
       "echo 'User=csye6225' | sudo tee -a /etc/systemd/system/myapp.service",
       "echo 'EnvironmentFile=/opt/myapp/.env' | sudo tee -a /etc/systemd/system/myapp.service",
       "echo 'WorkingDirectory = /opt/myapp' | sudo tee -a /etc/systemd/system/myapp.service",
-      "echo 'ExecStart=/usr/bin/java -jar /opt/myapp/webapp-0.0.1-SNAPSHOT.jar' | sudo tee -a /etc/systemd/system/myapp.service",
+      "echo 'ExecStart=/usr/bin/java -jar /opt/myapp/webapp.jar' | sudo tee -a /etc/systemd/system/myapp.service",
       "echo 'Restart=always' | sudo tee -a /etc/systemd/system/myapp.service",
       "echo '[Install]' | sudo tee -a /etc/systemd/system/myapp.service",
       "echo 'WantedBy=multi-user.target' | sudo tee -a /etc/systemd/system/myapp.service",
