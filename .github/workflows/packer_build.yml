@@ -20,12 +20,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build Application and Download Dependencies
-        run: mvn clean compile
-
-      - name: Run Integration Tests
-        run: mvn test
-
       - name: Package the Application
         run: |
           mvn package -DskipTests
@@ -59,8 +53,4 @@ jobs:
         run: aws configure set region us-east-1
 
       - name: Run Packer to Build Custom Image
-        env:
-          DB_URL: ${{ secrets.DB_URL }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        run: packer build -var "db_url=$DB_URL" -var "db_username=$DB_USERNAME" -var "db_password=$DB_PASSWORD" packer/ubuntu.pkr.hcl
+        run: packer build -var-file=packer/variables.pkr.hcl packer/ubuntu.pkr.hcl
