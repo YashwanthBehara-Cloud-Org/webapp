@@ -52,9 +52,13 @@ jobs:
 
       - name: Initialize Packer Plugins
         run: packer init packer/ubuntu.pkr.hcl
-
-      - name: Authenticate AWS
-        run: aws configure set region us-east-1
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+          aws-region: us-east-1
 
       - name: Run Packer to Build Custom Image
         run: packer build -var-file=packer/variables.pkr.hcl packer/ubuntu.pkr.hcl

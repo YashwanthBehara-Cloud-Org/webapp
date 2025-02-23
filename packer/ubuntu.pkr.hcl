@@ -18,7 +18,6 @@ source "amazon-ebs" "ubuntu" {
   source_ami    = "ami-04b4f1a9cf54c11d0"
   instance_type = "t2.micro"
   ssh_username  = "ubuntu"
-  profile       = "dev"
 }
 
 build {
