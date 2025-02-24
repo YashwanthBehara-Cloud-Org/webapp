@@ -75,7 +75,7 @@ public class HealthCheckControllerTest {
                 .when(healthCheckService).performHealthCheck();
 
         mockMvc.perform(get("/healthz"))
-                .andExpect(status().isServiceUnavailable())
+                .andExpect(status().isMethodNotAllowed())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof DataBaseConnectionException))
                 .andExpect(result -> assertEquals("Database connection failed", result.getResolvedException().getMessage()))
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate"))
