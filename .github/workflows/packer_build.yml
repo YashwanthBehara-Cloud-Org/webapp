@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-test-package:
+  packer-build:
     runs-on: ubuntu-latest
 
     steps:
@@ -33,14 +33,6 @@ jobs:
           name: myapp-jar
           path: artifact/
 
-  packer-build:
-    needs: build-test-package
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
       - name: Download JAR Artifact
         uses: actions/download-artifact@v4
         with:
@@ -52,7 +44,7 @@ jobs:
 
       - name: Initialize Packer Plugins
         run: packer init packer/ubuntu.pkr.hcl
-      
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -60,5 +52,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
           aws-region: us-east-1
 
-      - name: Run Packer to Build Custom Image
-        run: packer build -var-file=packer/variables.pkr.hcl packer/ubuntu.pkr.hcl
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_DEV_SA_KEY }}
+
+      - name: Run Packer to Build AWS & GCP Custom Images in Parallel
+        run: packer build packer/ubuntu.pkr.hcl
