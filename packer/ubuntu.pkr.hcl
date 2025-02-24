@@ -32,13 +32,13 @@ source "amazon-ebs" "aws-ubuntu" {
 
 # GCP Image Source
 source "googlecompute" "gcp-ubuntu" {
-  project_id   = var.gcp_project_id
-  region       = var.gcp_region
-  zone         = var.gcp_zone
-  machine_type = "e2-medium"
-  source_image = "projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-arm64-v20250213"
-  image_name   = "webapp-ubuntu-24-04"
-  ssh_username = "ubuntu"
+  project_id          = var.gcp_project_id
+  region              = var.gcp_region
+  zone                = var.gcp_zone
+  machine_type        = "e2-medium"
+  source_image_family = "ubuntu-2404-lts"
+  image_name          = "webapp-ubuntu-24-04"
+  ssh_username        = "ubuntu"
 }
 
 
