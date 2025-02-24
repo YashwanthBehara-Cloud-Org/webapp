@@ -36,10 +36,11 @@ source "googlecompute" "gcp-ubuntu" {
   region              = var.gcp_region
   zone                = var.gcp_zone
   machine_type        = "e2-medium"
-  source_image_family = "ubuntu-2204-lts"
+  source_image        = "projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-arm64-v20250213"
   image_name          = "webapp-ubuntu-24-04"
   ssh_username        = "ubuntu"
 }
+
 
 # Single Build Block that Builds Both AWS & GCP Simultaneously
 build {
