@@ -32,13 +32,13 @@ source "amazon-ebs" "aws-ubuntu" {
 
 # GCP Image Source
 source "googlecompute" "gcp-ubuntu" {
-  project_id        = var.gcp_project_id
-  region            = var.gcp_region
-  zone              = var.gcp_zone
-  machine_type      = "e2-medium"
+  project_id          = var.gcp_project_id
+  region              = var.gcp_region
+  zone                = var.gcp_zone
+  machine_type        = "e2-medium"
   source_image_family = "ubuntu-2204-lts"
-  image_name        = "webapp-ubuntu-24-04"
-  ssh_username      = "ubuntu"
+  image_name          = "webapp-ubuntu-24-04"
+  ssh_username        = "ubuntu"
 }
 
 # Single Build Block that Builds Both AWS & GCP Simultaneously

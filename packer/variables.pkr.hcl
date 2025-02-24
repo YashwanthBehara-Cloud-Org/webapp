@@ -1,5 +1,5 @@
 # AWS Variables
-aws_region  = "us-east-1"
+aws_region = "us-east-1"
 
 # GCP Variables
 gcp_project_id = "dev-gcp-project-451900"
