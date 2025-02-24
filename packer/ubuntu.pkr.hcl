@@ -67,8 +67,12 @@ build {
 
   provisioner "shell" {
     inline = [
-      "sudo apt update -y",
-      "sudo apt install -y openjdk-17-jdk mysql-server",
+      "sudo apt-get update -y",
+      "sudo apt-get upgrade -y",
+      "sudo apt-get install -y software-properties-common",
+      "sudo add-apt-repository universe",
+      "sudo apt-get update -y",
+      "sudo apt-get install -y openjdk-17-jdk mysql-server",
 
       # Start MySQL service
       "sudo systemctl start mysql",
