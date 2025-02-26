@@ -70,18 +70,9 @@ jobs:
             -var "aws_demo_account_id=${{ secrets.AWS_DEMO_ACCOUNT_ID }}" \
             -var "gcp_demo_project_id=${{ secrets.GCP_DEMO_PROJECT_ID }}" \
             -var-file=packer/variables.pkr.hcl \
+            -only="googlecompute.gcp-ubuntu"
             packer/ubuntu.pkr.hcl | tee packer_output.log
 
-
-      - name: Get latest AMI ID from AWS
-        id: get_ami_id
-        run: |
-            AMI_ID=$(aws ec2 describe-images --owners self --query 'Images | sort_by(@, &CreationDate) | [-1].ImageId' --output text) && echo "AMI_ID=$AMI_ID" >> $GITHUB_ENV
-              
-      - name: Share AMI with AWS Demo Account
-        run: |
-            aws ec2 modify-image-attribute --image-id ${{ env.AMI_ID }} --launch-permission "Add=[{UserId=${{ secrets.AWS_DEMO_ACCOUNT_ID }}}]"
-        
       - name: Get Latest Compute Image from GCP
         id: get_gcp_compute_image
         run: |
@@ -98,7 +89,7 @@ jobs:
         run: |
           gcloud compute instances create custom-vm-from-image \
             --project=${{ secrets.GCP_DEV_PROJECT_ID }} \
-            --zone=us-central1-a \
+            --zone=us-west2-c \
             --machine-type=n1-standard-1 \
             --image=${{ env.GCP_COMPUTE_IMAGE_NAME }} \
 
@@ -107,8 +98,8 @@ jobs:
         run: |
             gcloud compute machine-images create ubuntu-machine-image \
               --source-instance=custom-vm-from-image \
-              --source-instance-zone=us-central1-a  \
-              --storage-location=us-central1 \
+              --source-instance-zone=us-west2-c  \
+              --storage-location=us-west2 \
               --project=${{ secrets.GCP_DEV_PROJECT_ID }}
 
       - name: Share Machine Image with Demo Project
