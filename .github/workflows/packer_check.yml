@@ -1,0 +1,45 @@
+name: Packer Status Check
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  packer-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set Up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build Application
+        run: |
+          mvn clean package -DskipTests
+          mkdir -p artifact
+          cp target/*.jar artifact/webapp-0.0.1-SNAPSHOT.jar
+
+      - name: Install Packer
+        uses: hashicorp/setup-packer@main
+
+      - name: Initialize Packer Plugins
+        run: packer init packer/ubuntu.pkr.hcl
+
+      - name: Run Packer Format Check
+        run: packer fmt -check -recursive .
+
+      - name: Run Packer Validate
+        run: |
+          packer validate \
+            -var "db_username=${{ secrets.CSYE_DB_USERNAME }}" \
+            -var "db_password=${{ secrets.CSYE_DB_PASSWORD }}" \
+            -var "aws_demo_account_id=${{ secrets.AWS_DEMO_ACCOUNT_ID }}" \
+            -var "gcp_demo_project_id=${{ secrets.GCP_DEMO_PROJECT_ID }}" \
+            -var-file=packer/variables.pkr.hcl \
+            packer/ubuntu.pkr.hcl

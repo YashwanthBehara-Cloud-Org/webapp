@@ -1,0 +1,114 @@
+name: Packer Build & Share Workflow
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ] 
+  workflow_dispatch:
+
+jobs:
+  packer-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set Up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Package the Application
+        run: |
+          mvn package -DskipTests
+          mkdir -p artifact
+          cp target/*.jar artifact/
+
+      - name: Upload JAR File for Packer
+        uses: actions/upload-artifact@v4
+        with:
+          name: myapp-jar
+          path: artifact/
+
+      - name: Download JAR Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: myapp-jar
+          path: artifact/
+
+      - name: Install Packer
+        uses: hashicorp/setup-packer@main
+
+      - name: Initialize Packer Plugins
+        run: packer init packer/ubuntu.pkr.hcl
+
+      
+      - name: Configure Github actions Dev user AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+          aws-region: us-east-1
+
+      - name: Test Dev User AWS credentials
+        run: aws sts get-caller-identity
+
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_DEV_SA_KEY }}
+
+      - name: Run Packer to Build & Capture Output
+        id: packer_build
+        run: |
+          packer build -on-error=abort \
+            -var "db_username=${{ secrets.CSYE_DB_USERNAME }}" \
+            -var "db_password=${{ secrets.CSYE_DB_PASSWORD }}" \
+            -var "aws_demo_account_id=${{ secrets.AWS_DEMO_ACCOUNT_ID }}" \
+            -var "gcp_demo_project_id=${{ secrets.GCP_DEMO_PROJECT_ID }}" \
+            -var-file=packer/variables.pkr.hcl \
+            packer/ubuntu.pkr.hcl | tee packer_output.log
+
+      - name: Get latest AMI ID from AWS
+        id: get_ami_id
+        run: |
+          AMI_ID=$(aws ec2 describe-images --owners self --query 'Images | sort_by(@, &CreationDate) | [-1].ImageId' --output text) && echo "AMI_ID=$AMI_ID" >> $GITHUB_ENV
+          
+      - name: Get Latest Compute Image from GCP
+        id: get_gcp_compute_image
+        run: |
+          GCP_COMPUTE_IMAGE_NAME=$(gcloud compute images list --project=${{ secrets.GCP_DEV_PROJECT_ID }} \
+            --filter="name~'webapp-ubuntu-24-04'" \
+            --sort-by="~creationTimestamp" \
+            --limit=1 \
+            --format="value(name)")
+          echo "GCP_COMPUTE_IMAGE_NAME=$GCP_COMPUTE_IMAGE_NAME" >> $GITHUB_ENV
+          echo "Latest GCP Compute Image Name: $GCP_COMPUTE_IMAGE_NAME"
+      
+      - name: Share AMI with AWS Demo Account
+        run: |
+          aws ec2 modify-image-attribute --image-id ${{ env.AMI_ID }} --launch-permission "Add=[{UserId=${{ secrets.AWS_DEMO_ACCOUNT_ID }}}]"
+    
+      - name: Share GCP Compute Image with Demo Project
+        run: |
+          gcloud compute images add-iam-policy-binding ${{ env.GCP_COMPUTE_IMAGE_NAME }} \
+            --project=${{ secrets.GCP_DEV_PROJECT_ID }} \
+            --member="project:${{ secrets.GCP_DEMO_PROJECT_ID }}" \
+            --role="roles/compute.imageUser"
+
+      - name: Configure Github actions Demo user AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEMO }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEMO }}
+          aws-region: us-east-1
+
+
+      - name: Test Demo user AWS credentials
+        run: aws sts get-caller-identity
+          
+
+
