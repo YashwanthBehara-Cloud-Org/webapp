@@ -102,13 +102,13 @@ jobs:
               --storage-location=us-west2 \
               --project=${{ secrets.GCP_DEV_PROJECT_ID }}
 
-      - name: Copy Machine Image to Demo Project
+      - name: Share Machine Image with Demo Project
         run: |
-              gcloud compute machine-images create "webapp-ubuntu-24-04-mi-1-demo" \
-                --source-machine-image="${{ env.GCP_COMPUTE_IMAGE_NAME }}" \
-                --source-project="${{ secrets.GCP_DEV_PROJECT_ID }}" \
-                --project="${{ secrets.GCP_DEMO_PROJECT_ID }}"
-
+            gcloud compute machine-images add-iam-policy-binding ${{ env.GCP_COMPUTE_IMAGE_NAME }} \
+              --project=${{ secrets.GCP_DEV_PROJECT_ID }} \
+              --member="serviceAccount:${{ secrets.GCP_DEMO_SA_EMAIL }}" \
+              --role="roles/compute.imageUser"
+              
       - name: Configure Github actions Demo user AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
