@@ -7,8 +7,8 @@ aws_ssh_username  = "ubuntu"
 
 # GCP Variables
 gcp_project_id   = "dev-gcp-project-451900"
-gcp_region       = "us-east4"
-gcp_zone         = "us-east4-c"
+gcp_region       = "us-west2"
+gcp_zone         = "us-west2-c"
 gcp_machine_type = "n1-standard-1"
 gcp_source_image = "ubuntu-2004-focal-v20250213"
 gcp_image_name   = "webapp-ubuntu-24-04-mi-1"
