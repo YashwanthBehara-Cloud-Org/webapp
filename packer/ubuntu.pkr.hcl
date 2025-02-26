@@ -25,7 +25,7 @@ packer {
       version = ">= 1.0.0"
     }
     googlecompute = {
-      source  = "github.com/hashicorp/googlecompute-machineimage"
+      source  = "github.com/hashicorp/googlecompute"
       version = ">= 1.0.0"
     }
   }
@@ -55,7 +55,7 @@ source "googlecompute" "gcp-ubuntu" {
 build {
   sources = [
     "source.amazon-ebs.aws-ubuntu",
-    "source.googlecompute-machineimage.gcp-ubuntu"
+    "source.googlecompute.gcp-ubuntu"
   ]
 
   provisioner "shell" {
