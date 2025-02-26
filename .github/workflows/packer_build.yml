@@ -1,4 +1,4 @@
-name: Packer Build Workflow
+name: Packer Build & Share Workflow
 
 on:
   pull_request:
@@ -57,18 +57,32 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_DEV_SA_KEY }}
 
-      - name: Run Packer to Build & Share AWS & GCP Custom Images
-        env:
-          DB_USERNAME: ${{ secrets.CSYE_DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.CSYE_DB_PASSWORD }}
-          AWS_DEMO_ACCOUNT: ${{ secrets.AWS_DEMO_ACCOUNT_ID }}
-          GCP_DEMO_PROJECT: ${{ secrets.GCP_DEMO_PROJECT_ID }}
+      - name: Run Packer to Build & Capture Output
+        id: packer_build
         run: |
           packer build -on-error=abort \
-            -var "db_username=$DB_USERNAME" \
-            -var "db_password=$DB_PASSWORD" \
-            -var "aws_demo_account_id=$AWS_DEMO_ACCOUNT" \
-            -var "gcp_demo_project_id=$GCP_DEMO_PROJECT" \
+            -var "db_username=${{ secrets.CSYE_DB_USERNAME }}" \
+            -var "db_password=${{ secrets.CSYE_DB_PASSWORD }}" \
+            -var "aws_demo_account_id=${{ secrets.AWS_DEMO_ACCOUNT_ID }}" \
+            -var "gcp_demo_project_id=${{ secrets.GCP_DEMO_PROJECT_ID }}" \
             -var-file=packer/variables.pkr.hcl \
-            packer/ubuntu.pkr.hcl
+            packer/ubuntu.pkr.hcl | tee packer_output.log
 
+      - name: Extract AMI & Machine Image
+        id: extract_images
+        run: |
+          AWS_AMI_ID=$(grep -oP '"artifact_id":.*?"amazon-ebs:aws-ubuntu:\K[^"]+' packer_output.log)
+          GCP_MACHINE_IMAGE_NAME=$(grep -oP '"artifact_id":.*?"googlecompute-machineimage:gcp-machine-image:\K[^"]+' packer_output.log)
+          echo "AWS_AMI_ID=$AWS_AMI_ID" >> $GITHUB_ENV
+          echo "GCP_MACHINE_IMAGE_NAME=$GCP_MACHINE_IMAGE_NAME" >> $GITHUB_ENV
+
+      - name: Share AWS AMI with Demo Account
+        run: |
+          aws ec2 modify-image-attribute --image-id $AWS_AMI_ID --launch-permission "Add=[{UserId=${{ secrets.AWS_DEMO_ACCOUNT_ID }} }]"
+
+      - name: Share GCP Machine Image with Demo Project
+        run: |
+          gcloud compute machine-images add-iam-policy-binding $GCP_MACHINE_IMAGE_NAME \
+            --project=${{ secrets.GCP_DEMO_PROJECT_ID }} \
+            --member="project:${{ secrets.GCP_DEMO_PROJECT_ID }}" \
+            --role="roles/compute.imageUser"
