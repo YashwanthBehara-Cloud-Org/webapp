@@ -57,6 +57,18 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_DEV_SA_KEY }}
 
-      - name: Run Packer to Build AWS & GCP Custom Images in Parallel
-        run: packer build -on-error=abort -only=googlecompute.gcp-ubuntu -var-file=packer/variables.pkr.hcl packer/ubuntu.pkr.hcl
+      - name: Run Packer to Build & Share AWS & GCP Custom Images
+        env:
+          DB_USERNAME: ${{ secrets.CSYE_DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.CSYE_DB_PASSWORD }}
+          AWS_DEMO_ACCOUNT: ${{ secrets.AWS_DEMO_ACCOUNT_ID }}
+          GCP_DEMO_PROJECT: ${{ secrets.GCP_DEMO_PROJECT_ID }}
+        run: |
+          packer build -on-error=abort \
+            -var "db_username=$DB_USERNAME" \
+            -var "db_password=$DB_PASSWORD" \
+            -var "aws_demo_account_id=$AWS_DEMO_ACCOUNT" \
+            -var "gcp_demo_project_id=$GCP_DEMO_PROJECT" \
+            -var-file=packer/variables.pkr.hcl \
+            packer/ubuntu.pkr.hcl
 

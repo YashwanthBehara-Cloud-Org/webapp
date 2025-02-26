@@ -1,8 +1,19 @@
 # Define variables
 variable "aws_region" {}
+variable "aws_source_ami" {}
+variable "aws_ami_name" {}
+variable "aws_instance_type" {}
+variable "aws_ssh_username" {}
+variable "aws_demo_account_id" {}
+
 variable "gcp_project_id" {}
 variable "gcp_region" {}
 variable "gcp_zone" {}
+variable "gcp_image_name" {}
+variable "gcp_machine_type" {}
+variable "gcp_ssh_username" {}
+variable "gcp_demo_project_id" {}
+
 variable "db_username" {}
 variable "db_password" {}
 variable "db_url" {}
@@ -23,11 +34,21 @@ packer {
 
 # AWS Image Source
 source "amazon-ebs" "aws-ubuntu" {
-  ami_name      = "webapp-ubuntu-24-04"
+  ami_name      = var.aws_ami_name
   region        = var.aws_region
-  source_ami    = "ami-04b4f1a9cf54c11d0"
-  instance_type = "t2.micro"
-  ssh_username  = "ubuntu"
+  source_ami    = var.aws_source_ami
+  instance_type = var.aws_instance_type
+  ssh_username  = var.aws_ssh_username
+}
+
+# POST Provisioner to share AWS Image to DEMO Account 
+
+post-processor "shell-local" {
+  only = ["amazon-ebs.aws-ubuntu"]
+
+  inline = [
+    "aws ec2 modify-image-attribute --image-id $(jq -r .builds[0].artifact_id manifest.json | cut -d':' -f2) --region ${var.aws_region} --launch-permission 'Add=[{UserId=${var.aws_demo_account_id}}]'"
+  ]
 }
 
 # GCP Image Source
@@ -35,14 +56,18 @@ source "googlecompute" "gcp-ubuntu" {
   project_id   = var.gcp_project_id
   region       = var.gcp_region
   zone         = var.gcp_zone
-  machine_type = "n1-standard-1"
-  source_image = "ubuntu-2004-focal-v20250213"
-  image_name   = "webapp-ubuntu-24-04"
-  ssh_username = "ubuntu"
+  machine_type = var.gcp_machine_type
+  source_image = var.gcp_source_image
+  image_name   = var.gcp_image_name
+  ssh_username = var.gcp_ssh_username
 }
 
-
-
+# POST Provisioner to share GCP Image to DEMO Project 
+provisioner "shell-local" {
+  inline = [
+    "gcloud compute images add-iam-policy-binding ${var.gcp_image_name} --project=${var.gcp_project_id} --member='user:${var.gcp_demo_project_id}' --role='roles/compute.imageUser'"
+  ]
+}
 
 # Single Build Block that Builds Both AWS & GCP Simultaneously
 build {
