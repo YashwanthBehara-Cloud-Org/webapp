@@ -18,7 +18,6 @@ variable "db_username" {}
 variable "db_password" {}
 variable "db_url" {}
 
-
 packer {
   required_plugins {
     amazon = {
@@ -41,16 +40,6 @@ source "amazon-ebs" "aws-ubuntu" {
   ssh_username  = var.aws_ssh_username
 }
 
-# POST Provisioner to share AWS Image to DEMO Account 
-
-post-processor "shell-local" {
-  only = ["amazon-ebs.aws-ubuntu"]
-
-  inline = [
-    "aws ec2 modify-image-attribute --image-id $(jq -r .builds[0].artifact_id manifest.json | cut -d':' -f2) --region ${var.aws_region} --launch-permission 'Add=[{UserId=${var.aws_demo_account_id}}]'"
-  ]
-}
-
 # GCP Image Source
 source "googlecompute" "gcp-ubuntu" {
   project_id   = var.gcp_project_id
@@ -60,13 +49,6 @@ source "googlecompute" "gcp-ubuntu" {
   source_image = var.gcp_source_image
   image_name   = var.gcp_image_name
   ssh_username = var.gcp_ssh_username
-}
-
-# POST Provisioner to share GCP Image to DEMO Project 
-provisioner "shell-local" {
-  inline = [
-    "gcloud compute images add-iam-policy-binding ${var.gcp_image_name} --project=${var.gcp_project_id} --member='user:${var.gcp_demo_project_id}' --role='roles/compute.imageUser'"
-  ]
 }
 
 # Single Build Block that Builds Both AWS & GCP Simultaneously
@@ -122,7 +104,6 @@ build {
       "echo 'DB_USERNAME=${var.db_username}' | sudo tee -a /opt/myapp/.env",
       "echo 'DB_PASSWORD=${var.db_password}' | sudo tee -a /opt/myapp/.env",
 
-
       # Change owner to csye6225 so Java can access it
       "sudo chown csye6225:csye6225 /opt/myapp/.env",
 
@@ -145,6 +126,22 @@ build {
       # Start service
       "sudo systemctl daemon-reload",
       "sudo systemctl enable myapp.service"
+    ]
+  }
+
+  post-processor "shell-local" {
+    inline = [
+      # AWS: Share AMI with Demo Account
+      "echo 'Sharing AWS AMI with Demo Account...'",
+      "AWS_AMI_ID=$(jq -r '.builds[] | select(.name==\"aws-ubuntu\") | .artifact_id' manifest.json | cut -d':' -f2)",
+      "aws ec2 modify-image-attribute --image-id $AWS_AMI_ID --launch-permission 'Add=[{UserId=${var.aws_demo_account_id} }]'",
+      
+      # GCP: Share Image with Demo Project
+      "echo 'Sharing GCP Image with Demo Project...'",
+      "GCP_IMAGE_NAME=$(jq -r '.builds[] | select(.name==\"gcp-ubuntu\") | .artifact_id' manifest.json | cut -d':' -f2)",
+      "gcloud compute images add-iam-policy-binding $GCP_IMAGE_NAME --member='serviceAccount:${var.gcp_demo_project_id}@developer.gserviceaccount.com' --role='roles/compute.imageUser'",
+      
+      "echo 'AWS and GCP images successfully shared with Demo accounts.'"
     ]
   }
 }
