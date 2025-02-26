@@ -61,7 +61,6 @@ jobs:
         id: packer_build
         run: |
           packer build -on-error=abort \
-            -only=googlecompute.gcp-ubuntu \
             -var "db_username=${{ secrets.CSYE_DB_USERNAME }}" \
             -var "db_password=${{ secrets.CSYE_DB_PASSWORD }}" \
             -var "aws_demo_account_id=${{ secrets.AWS_DEMO_ACCOUNT_ID }}" \
@@ -73,7 +72,7 @@ jobs:
         id: extract_images
         run: |
           AWS_AMI_ID=$(grep -oP '"artifact_id":.*?"amazon-ebs:aws-ubuntu:\K[^"]+' packer_output.log)
-          GCP_MACHINE_IMAGE_NAME=$(grep -oP '"artifact_id":.*?"googlecompute-machineimage:gcp-machine-image:\K[^"]+' packer_output.log)
+          GCP_MACHINE_IMAGE_NAME=$(grep -oP '"artifact_id":.*?"googlecompute.gcp-ubuntu:\K[^"]+' packer_output.log)
           echo "AWS_AMI_ID=$AWS_AMI_ID" >> $GITHUB_ENV
           echo "GCP_MACHINE_IMAGE_NAME=$GCP_MACHINE_IMAGE_NAME" >> $GITHUB_ENV
 
