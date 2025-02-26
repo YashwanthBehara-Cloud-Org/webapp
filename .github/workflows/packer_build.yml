@@ -76,6 +76,7 @@ jobs:
           echo "AWS_AMI_ID=$AWS_AMI_ID" >> $GITHUB_ENV
           echo "GCP_MACHINE_IMAGE_NAME=$GCP_MACHINE_IMAGE_NAME" >> $GITHUB_ENV
 
+
       - name: Share AWS AMI with Demo Account
         run: |
           aws ec2 modify-image-attribute --image-id $AWS_AMI_ID --launch-permission "Add=[{UserId=${{ secrets.AWS_DEMO_ACCOUNT_ID }} }]"
