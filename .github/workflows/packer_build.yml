@@ -70,13 +70,10 @@ jobs:
             -var "aws_demo_account_id=${{ secrets.AWS_DEMO_ACCOUNT_ID }}" \
             -var "gcp_demo_project_id=${{ secrets.GCP_DEMO_PROJECT_ID }}" \
             -var-file=packer/variables.pkr.hcl \
+            -only="googlecompute.gcp-ubuntu" \
             packer/ubuntu.pkr.hcl | tee packer_output.log
 
-      - name: Get latest AMI ID from AWS
-        id: get_ami_id
-        run: |
-          AMI_ID=$(aws ec2 describe-images --owners self --query 'Images | sort_by(@, &CreationDate) | [-1].ImageId' --output text) && echo "AMI_ID=$AMI_ID" >> $GITHUB_ENV
-          
+
       - name: Get Latest Compute Image from GCP
         id: get_gcp_compute_image
         run: |
@@ -88,15 +85,12 @@ jobs:
           echo "GCP_COMPUTE_IMAGE_NAME=$GCP_COMPUTE_IMAGE_NAME" >> $GITHUB_ENV
           echo "Latest GCP Compute Image Name: $GCP_COMPUTE_IMAGE_NAME"
       
-      - name: Share AMI with AWS Demo Account
-        run: |
-          aws ec2 modify-image-attribute --image-id ${{ env.AMI_ID }} --launch-permission "Add=[{UserId=${{ secrets.AWS_DEMO_ACCOUNT_ID }}}]"
-    
+
       - name: Share GCP Compute Image with Demo Project
         run: |
           gcloud compute images add-iam-policy-binding ${{ env.GCP_COMPUTE_IMAGE_NAME }} \
             --project=${{ secrets.GCP_DEV_PROJECT_ID }} \
-            --member="project:${{ secrets.GCP_DEMO_PROJECT_ID }}" \
+            --member="serviceAccount:${{ secrets.GCP_DEMO_SA_EMAIL }}" \
             --role="roles/compute.imageUser"
 
       - name: Configure Github actions Demo user AWS credentials
