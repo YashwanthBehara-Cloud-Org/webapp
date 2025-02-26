@@ -92,14 +92,31 @@ jobs:
             --format="value(name)")
           echo "GCP_COMPUTE_IMAGE_NAME=$GCP_COMPUTE_IMAGE_NAME" >> $GITHUB_ENV
           echo "Latest GCP Compute Image Name: $GCP_COMPUTE_IMAGE_NAME"
-      
 
-      - name: Share GCP Compute Image with Demo Project
+      - name: Create VM from GCP Compute Image
+        id: create_vm
         run: |
-          gcloud compute images add-iam-policy-binding ${{ env.GCP_COMPUTE_IMAGE_NAME }} \
+          gcloud compute instances create custom-vm-from-image \
             --project=${{ secrets.GCP_DEV_PROJECT_ID }} \
-            --member="serviceAccount:${{ secrets.GCP_DEMO_SA_EMAIL }}" \
-            --role="roles/compute.imageUser"
+            --zone=us-central1-a \
+            --machine-type=n1-standard-1 \
+            --image=${{ env.GCP_COMPUTE_IMAGE_NAME }} \
+
+      - name: Create Machine Image from VM
+        id: create_machine_image
+        run: |
+            gcloud compute machine-images create ubuntu-machine-image \
+              --source-instance=custom-vm-from-image \
+              --source-instance-zone=us-central1-a  \
+              --storage-location=us-central1 \
+              --project=${{ secrets.GCP_DEV_PROJECT_ID }}
+
+      - name: Share Machine Image with Demo Project
+        run: |
+            gcloud compute machine-images add-iam-policy-binding ubuntu-machine-image \
+                --project=${{ secrets.GCP_DEV_PROJECT_ID }} \
+                --member="serviceAccount:${{ secrets.GCP_DEMO_SA_EMAIL }}" \
+                --role="roles/compute.imageUser"
 
       - name: Configure Github actions Demo user AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
