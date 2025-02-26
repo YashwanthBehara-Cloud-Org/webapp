@@ -9,8 +9,9 @@ variable "aws_demo_account_id" {}
 variable "gcp_project_id" {}
 variable "gcp_region" {}
 variable "gcp_zone" {}
-variable "gcp_image_name" {}
 variable "gcp_machine_type" {}
+variable "gcp_source_image" {}
+variable "gcp_image_name" {}
 variable "gcp_ssh_username" {}
 variable "gcp_demo_project_id" {}
 
