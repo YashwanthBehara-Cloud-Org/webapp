@@ -41,7 +41,7 @@ source "amazon-ebs" "aws-ubuntu" {
 }
 
 # GCP Machine Image Source
-source "googlecompute-machineimage" "gcp-machine-image" {
+source "googlecompute" "gcp-ubuntu" {
   project_id   = var.gcp_project_id
   region       = var.gcp_region
   zone         = var.gcp_zone
@@ -55,7 +55,7 @@ source "googlecompute-machineimage" "gcp-machine-image" {
 build {
   sources = [
     "source.amazon-ebs.aws-ubuntu",
-    "source.googlecompute-machineimage.gcp-machine-image"
+    "source.googlecompute-machineimage.gcp-ubuntu"
   ]
 
   provisioner "shell" {
