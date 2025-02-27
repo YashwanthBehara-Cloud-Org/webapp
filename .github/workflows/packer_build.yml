@@ -1,8 +1,6 @@
 name: Packer Build & Share Workflow
 
 on:
-  pull_request:
-    branches: [ main ]
   push:
     branches: [ main ] 
   workflow_dispatch:
@@ -102,7 +100,7 @@ jobs:
             --machine-type=n1-standard-1 \
             --image=${{ env.GCP_COMPUTE_IMAGE_NAME }} \
 
-      - name: Create Machine Image from VM
+      - name: Create Machine Image from VM on GCP
         id: create_machine_image
         run: |
             gcloud compute machine-images create ubuntu-machine-image \
@@ -111,7 +109,7 @@ jobs:
               --storage-location=us-west2 \
               --project=${{ secrets.GCP_DEV_PROJECT_ID }}
 
-      - name: Share Machine Image with Demo Project
+      - name: Share Machine Image with Demo Project - Demo Service Account
         run: |
             gcloud compute machine-images add-iam-policy-binding ubuntu-machine-image \
               --project=${{ secrets.GCP_DEV_PROJECT_ID }} \
@@ -124,7 +122,6 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEMO }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEMO }}
           aws-region: us-east-1
-
 
       - name: Test Demo user AWS credentials
         run: aws sts get-caller-identity
