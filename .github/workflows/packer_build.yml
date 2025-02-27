@@ -1,8 +1,6 @@
 name: Packer Build & Share Workflow
 
 on:
-  pull_request:
-    branches: [ main ]
   push:
     branches: [ main ] 
   workflow_dispatch:
@@ -72,7 +70,7 @@ jobs:
             -var-file=packer/variables.pkr.hcl \
             packer/ubuntu.pkr.hcl | tee packer_output.log
 
-
+      
       - name: Get latest AMI ID from AWS
         id: get_ami_id
         run: |
@@ -92,14 +90,31 @@ jobs:
             --format="value(name)")
           echo "GCP_COMPUTE_IMAGE_NAME=$GCP_COMPUTE_IMAGE_NAME" >> $GITHUB_ENV
           echo "Latest GCP Compute Image Name: $GCP_COMPUTE_IMAGE_NAME"
-      
 
-      - name: Share GCP Compute Image with Demo Project
+      - name: Create VM from GCP Compute Image
+        id: create_vm
         run: |
-          gcloud compute images add-iam-policy-binding ${{ env.GCP_COMPUTE_IMAGE_NAME }} \
+          gcloud compute instances create custom-vm-from-image \
             --project=${{ secrets.GCP_DEV_PROJECT_ID }} \
-            --member="serviceAccount:${{ secrets.GCP_DEMO_SA_EMAIL }}" \
-            --role="roles/compute.imageUser"
+            --zone=us-west2-c \
+            --machine-type=n1-standard-1 \
+            --image=${{ env.GCP_COMPUTE_IMAGE_NAME }} \
+
+      - name: Create Machine Image from VM on GCP
+        id: create_machine_image
+        run: |
+            gcloud compute machine-images create ubuntu-machine-image \
+              --source-instance=custom-vm-from-image \
+              --source-instance-zone=us-west2-c  \
+              --storage-location=us-west2 \
+              --project=${{ secrets.GCP_DEV_PROJECT_ID }}
+
+      - name: Share Machine Image with Demo Project - Demo Service Account
+        run: |
+            gcloud compute machine-images add-iam-policy-binding ubuntu-machine-image \
+              --project=${{ secrets.GCP_DEV_PROJECT_ID }} \
+              --member="serviceAccount:${{ secrets.GCP_DEMO_SA_EMAIL }}" \
+              --role="roles/compute.instanceAdmin.v1"
 
       - name: Configure Github actions Demo user AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -107,7 +122,6 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEMO }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEMO }}
           aws-region: us-east-1
-
 
       - name: Test Demo user AWS credentials
         run: aws sts get-caller-identity

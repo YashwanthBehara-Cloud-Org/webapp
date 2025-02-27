@@ -171,3 +171,32 @@ Contains commands to :
     terraform plan -var-file="var_dev.tfvars"
     terraform apply -var-file="var_dev.tfvars"
     ```
+
+
+### Assignment - 4
+
+#### Setup Packer to Build Machine Images for AWS and GCP
+
+1. **GitHub Workflows Setup:**
+   - **Packer - Check:** Validates packer format and configuration.
+   - **Packer - Build:** Builds the machine images.
+
+2. **Packer Build Workflow Steps:**
+   - Builds the application JAR file in the GitHub runner.
+   - Installs required plugins and dependencies.
+   - Configures AWS using the dev user to build the AMI.
+   - Configures GCP using the dev service account to build the machine image.
+   - Executes the packer build command.
+   - Retrieves the AWS AMI ID and GCP image name after successful creation.
+   - Shares the AWS AMI with the demo account.
+   - Uses the GCP Compute Image to create a VM instance and then a machine image.
+   - Shares the GCP machine image with the demo project service account.
+
+3. **Packer File Execution (`packer/ubuntu.pkr.hcl`):**
+   - Uses a default image to create a temporary instance for building machine images.
+   - Transfers the application JAR file from GitHub artifacts to the temporary instance.
+   - Installs MySQL, JDK, and other dependencies.
+   - Sets up the database, creates a user (`csye7225user`), and grants database access.
+   - Creates an environment file for the application.
+   - Configures a service file to initialize dependencies, MySQL server, and run the application upon instance creation using the custom machine image.
+

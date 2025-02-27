@@ -108,7 +108,7 @@ build {
       # Change owner to csye6225 so Java can access it
       "sudo chown csye6225:csye6225 /opt/myapp/.env",
 
-      # Change permissions to allow read access by the user but no write access
+      # Change permissions to allow read & write access by the user but no write access to others
       "sudo chmod 644 /opt/myapp/.env",
 
       # Configure systemd service
