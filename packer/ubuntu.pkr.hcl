@@ -35,7 +35,7 @@ packer {
 # AWS Image Source
 source "amazon-ebs" "aws-ubuntu" {
   ami_name      = var.aws_ami_name
-  region        = var.aws_region
+  region        = var.bad
   source_ami    = var.aws_source_ami
   instance_type = var.aws_instance_type
   ssh_username  = var.aws_ssh_username
