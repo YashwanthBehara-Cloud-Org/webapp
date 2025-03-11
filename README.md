@@ -1,7 +1,7 @@
 ### Assignment-1 Running guide
 
 ## Prerequisites
-- Latest version of Java and Maven should installed
+- Latest version of  Java and Maven should installed
 - MySQL server is installed and running.
 - Database "health_check_db" created on your local MySQL server.
 - Access to the Spring Boot project's configuration files.
