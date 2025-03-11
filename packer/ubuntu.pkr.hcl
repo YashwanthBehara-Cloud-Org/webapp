@@ -34,7 +34,7 @@ packer {
 
 # AWS Image Source
 source "amazon-ebs" "aws-ubuntu" {
-  ami_name      = var.aws_ami_name
+  ami_name      =  var.aws_ami_name
   region        = var.aws_region
   source_ami    = var.aws_source_ami
   instance_type = var.aws_instance_type
