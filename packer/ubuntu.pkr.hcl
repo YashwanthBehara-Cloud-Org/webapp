@@ -43,7 +43,7 @@ source "amazon-ebs" "aws-ubuntu" {
 
 # GCP Machine Image Source
 source "googlecompute" "gcp-ubuntu" {
-  project_id   = var.gcp_project_id
+  project_id   =  var.gcp_project_id
   region       = var.gcp_region
   zone         = var.gcp_zone
   machine_type = var.gcp_machine_type
