@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
@@ -29,14 +30,24 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
 
     public FileUploadMetaDataServiceImpl(@Value("${aws.s3.bucketName}") String bucketName,
                                          FileUploadMetaDataRepository fileMetadataRepository) {
+
+        // Fetching credentials from system properties or environment variables
         String awsAccessKeyId = System.getProperty("aws_access_key_id", "");
         String awsSecretAccessKey = System.getProperty("aws_secret_access_key", "");
         String awsRegion = System.getProperty("aws_region", "us-east-1");
 
-        this.s3Client = S3Client.builder()
-                .region(Region.of(awsRegion)) // Use the region from system property
-                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(awsAccessKeyId, awsSecretAccessKey))) // Use credentials from system property
-                .build();
+        // If the credentials are provided, use them. Otherwise, fall back to default credentials provider (IAM role for EC2 or AWS credentials file)
+        if (!awsAccessKeyId.isEmpty() && !awsSecretAccessKey.isEmpty()) {
+            this.s3Client = S3Client.builder()
+                    .region(Region.of(awsRegion))  // Use the region from the system property
+                    .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(awsAccessKeyId, awsSecretAccessKey)))  // Use the provided credentials
+                    .build();
+        } else {
+            this.s3Client = S3Client.builder()
+                    .region(Region.of(awsRegion))  // Use the region from the system property
+                    .credentialsProvider(DefaultCredentialsProvider.create())  // Use the default credentials provider (IAM role or AWS credentials file)
+                    .build();
+        }
 
         this.bucketName = bucketName;
         this.fileMetadataRepository = fileMetadataRepository;
