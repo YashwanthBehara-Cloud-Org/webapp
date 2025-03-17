@@ -80,17 +80,7 @@ build {
       "sudo apt-get install -y software-properties-common",
       "sudo add-apt-repository universe",
       "sudo apt-get update -y",
-      "sudo apt-get install -y openjdk-17-jdk mysql-server",
-
-      # Start MySQL service
-      "sudo systemctl start mysql",
-      "sudo systemctl enable mysql",
-
-      # Create database and user
-      "sudo mysql -e \"CREATE DATABASE IF NOT EXISTS health_check_db;\"",
-      "sudo mysql -e \"CREATE USER IF NOT EXISTS '${var.db_username}'@'localhost' IDENTIFIED BY '${var.db_password}';\"",
-      "sudo mysql -e \"GRANT ALL PRIVILEGES ON health_check_db.* TO '${var.db_username}'@'localhost';\"",
-      "sudo mysql -e \"FLUSH PRIVILEGES;\"",
+      "sudo apt-get install -y openjdk-17-jdk",
 
       # Create user and group
       "sudo groupadd csye6225",
@@ -100,33 +90,24 @@ build {
       "sudo chown -R csye6225:csye6225 /opt/myapp",
       "sudo chmod -R 755 /opt/myapp",
 
-      # Create .env file
-      "echo 'DB_URL=${var.db_url}' | sudo tee /opt/myapp/.env",
-      "echo 'DB_USERNAME=${var.db_username}' | sudo tee -a /opt/myapp/.env",
-      "echo 'DB_PASSWORD=${var.db_password}' | sudo tee -a /opt/myapp/.env",
-
-      # Change owner to csye6225 so Java can access it
-      "sudo chown csye6225:csye6225 /opt/myapp/.env",
-
-      # Change permissions to allow read & write access by the user but no write access to others
-      "sudo chmod 644 /opt/myapp/.env",
-
-      # Configure systemd service
+    # Configure systemd service (but DO NOT enable/start it)
       "echo '[Unit]' | sudo tee /etc/systemd/system/myapp.service",
       "echo 'Description=My Java Application' | sudo tee -a /etc/systemd/system/myapp.service",
       "echo 'After=network.target' | sudo tee -a /etc/systemd/system/myapp.service",
+
       "echo '[Service]' | sudo tee -a /etc/systemd/system/myapp.service",
       "echo 'User=csye6225' | sudo tee -a /etc/systemd/system/myapp.service",
       "echo 'EnvironmentFile=/opt/myapp/.env' | sudo tee -a /etc/systemd/system/myapp.service",
       "echo 'WorkingDirectory = /opt/myapp' | sudo tee -a /etc/systemd/system/myapp.service",
       "echo 'ExecStart=/usr/bin/java -jar /opt/myapp/webapp.jar' | sudo tee -a /etc/systemd/system/myapp.service",
       "echo 'Restart=always' | sudo tee -a /etc/systemd/system/myapp.service",
+
       "echo '[Install]' | sudo tee -a /etc/systemd/system/myapp.service",
       "echo 'WantedBy=multi-user.target' | sudo tee -a /etc/systemd/system/myapp.service",
 
-      # Start service
-      "sudo systemctl daemon-reload",
-      "sudo systemctl enable myapp.service"
-    ]
-  }
+      # DO NOT ENABLE OR START THE SERVICE HERE
+      "sudo systemctl daemon-reload"
+  ]
+}
+
 }
