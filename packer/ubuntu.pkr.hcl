@@ -6,9 +6,6 @@ variable "aws_instance_type" {}
 variable "aws_ssh_username" {}
 variable "aws_demo_account_id" {}
 
-variable "db_username" {}
-variable "db_password" {}
-variable "db_url" {}
 
 packer {
   required_plugins {
@@ -66,7 +63,7 @@ build {
       "sudo chown -R csye6225:csye6225 /opt/myapp",
       "sudo chmod -R 755 /opt/myapp",
 
-    # Configure systemd service (but DO NOT enable/start it)
+      # Configure systemd service (but DO NOT enable/start it)
       "echo '[Unit]' | sudo tee /etc/systemd/system/myapp.service",
       "echo 'Description=My Java Application' | sudo tee -a /etc/systemd/system/myapp.service",
       "echo 'After=network.target' | sudo tee -a /etc/systemd/system/myapp.service",
@@ -83,7 +80,7 @@ build {
 
       # DO NOT ENABLE OR START THE SERVICE HERE
       "sudo systemctl daemon-reload"
-  ]
-}
+    ]
+  }
 
 }
