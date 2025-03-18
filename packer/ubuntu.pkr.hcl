@@ -6,15 +6,6 @@ variable "aws_instance_type" {}
 variable "aws_ssh_username" {}
 variable "aws_demo_account_id" {}
 
-variable "gcp_project_id" {}
-variable "gcp_region" {}
-variable "gcp_zone" {}
-variable "gcp_machine_type" {}
-variable "gcp_source_image" {}
-variable "gcp_image_name" {}
-variable "gcp_ssh_username" {}
-variable "gcp_demo_project_id" {}
-
 variable "db_username" {}
 variable "db_password" {}
 variable "db_url" {}
@@ -23,10 +14,6 @@ packer {
   required_plugins {
     amazon = {
       source  = "github.com/hashicorp/amazon"
-      version = ">= 1.0.0"
-    }
-    googlecompute = {
-      source  = "github.com/hashicorp/googlecompute"
       version = ">= 1.0.0"
     }
   }
@@ -41,22 +28,11 @@ source "amazon-ebs" "aws-ubuntu" {
   ssh_username  = var.aws_ssh_username
 }
 
-# GCP Machine Image Source
-source "googlecompute" "gcp-ubuntu" {
-  project_id   = var.gcp_project_id
-  region       = var.gcp_region
-  zone         = var.gcp_zone
-  machine_type = var.gcp_machine_type
-  source_image = var.gcp_source_image
-  image_name   = var.gcp_image_name
-  ssh_username = var.gcp_ssh_username
-}
 
 # Single Build Block that Builds Both AWS & GCP Simultaneously
 build {
   sources = [
-    "source.amazon-ebs.aws-ubuntu",
-    "source.googlecompute.gcp-ubuntu"
+    "source.amazon-ebs.aws-ubuntu"
   ]
 
   provisioner "shell" {
