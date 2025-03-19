@@ -37,9 +37,6 @@ jobs:
       - name: Run Packer Validate
         run: |
           packer validate \
-            -var "db_username=${{ secrets.CSYE_DB_USERNAME }}" \
-            -var "db_password=${{ secrets.CSYE_DB_PASSWORD }}" \
             -var "aws_demo_account_id=${{ secrets.AWS_DEMO_ACCOUNT_ID }}" \
-            -var "gcp_demo_project_id=${{ secrets.GCP_DEMO_PROJECT_ID }}" \
             -var-file=packer/variables.pkr.hcl \
             packer/ubuntu.pkr.hcl
