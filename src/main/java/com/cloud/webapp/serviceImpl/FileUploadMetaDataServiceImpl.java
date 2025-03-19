@@ -28,7 +28,7 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
     private final String bucketName;
     private final FileUploadMetaDataRepository fileMetadataRepository;
 
-    public FileUploadMetaDataServiceImpl(@Value("${aws.s3.bucketName}") String bucketName,
+    public FileUploadMetaDataServiceImpl(@Value("${AWS_S3_BUCKET_NAME}") String bucketName,
                                          FileUploadMetaDataRepository fileMetadataRepository) {
 
         // Fetching credentials from system properties or environment variables

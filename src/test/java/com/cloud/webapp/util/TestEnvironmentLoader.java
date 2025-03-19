@@ -15,7 +15,7 @@ public class TestEnvironmentLoader {
             System.setProperty("DB_URL", dotenv.get("DB_URL"));
             System.setProperty("DB_USERNAME", dotenv.get("DB_USERNAME"));
             System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
-            System.setProperty("aws.s3.bucketName", dotenv.get("aws.s3.bucketName",""));
+            System.setProperty("AWS_S3_BUCKET_NAME", dotenv.get("AWS_S3_BUCKET_NAME",""));
             System.setProperty("aws_access_key_id", dotenv.get("aws_access_key_id", ""));
             System.setProperty("aws_secret_access_key", dotenv.get("aws_secret_access_key", ""));
             System.setProperty("aws_region", dotenv.get("aws_region", "us-east-1"));
