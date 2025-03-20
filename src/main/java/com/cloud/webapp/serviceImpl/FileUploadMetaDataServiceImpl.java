@@ -128,13 +128,25 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
 
     @Override
     public void deleteFileFromS3(String id) {
+        // Check if the file exists in the database
+        Optional<FileUploadMetaData> fileMetaDataOptional = fileMetadataRepository.findById(id);
+
+        if (fileMetaDataOptional.isEmpty()) {
+            throw new RuntimeException("File with ID " + id + " not found. Cannot delete.");
+        }
+
+        // Retrieve file metadata
+        FileUploadMetaData fileMetadata = fileMetaDataOptional.get();
+
+        // Delete the file from S3
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(bucketName)
                 .key(id)
                 .build();
+
         s3Client.deleteObject(deleteObjectRequest);
 
-        // Delete metadata from local MySQL database
         fileMetadataRepository.deleteById(id);
     }
+
 }
