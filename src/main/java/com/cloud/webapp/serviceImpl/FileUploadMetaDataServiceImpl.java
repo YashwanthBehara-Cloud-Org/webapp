@@ -137,11 +137,12 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
 
         // Retrieve file metadata
         FileUploadMetaData fileMetadata = fileMetaDataOptional.get();
+        String fileKey = fileMetadata.getFilename();
 
         // Delete the file from S3
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(bucketName)
-                .key(id)
+                .key(fileKey)
                 .build();
 
         s3Client.deleteObject(deleteObjectRequest);

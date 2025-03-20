@@ -4,6 +4,7 @@ import com.cloud.webapp.exception.FileNotFoundException;
 import com.cloud.webapp.exception.InvalidFileException;
 import com.cloud.webapp.model.FileUploadMetaData;
 import com.cloud.webapp.service.FileUploadMetaDataService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -22,8 +23,19 @@ public class FileUploadController {
     private FileUploadMetaDataService fileService;
 
     @PostMapping
-    public ResponseEntity<Object> uploadFile(@RequestParam("file") MultipartFile[] files) {
+    public ResponseEntity<Object> uploadFile(@RequestParam("file") MultipartFile[] files, HttpServletRequest request) {
         try {
+
+            // Validate: No query parameters allowed
+            if (!request.getParameterMap().isEmpty()) {
+                throw new IllegalArgumentException("Query parameters are not allowed.");
+            }
+
+            // Validate: Ensure a file is provided
+            if (files == null || files.length == 0 || files[0].isEmpty()) {
+                throw new IllegalArgumentException("A file must be provided.");
+            }
+
             // Check if more than one file is uploaded
             if (files.length > 1) {
                 throw new IllegalArgumentException("Only one file can be uploaded at a time.");
@@ -44,7 +56,9 @@ public class FileUploadController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getFile(@PathVariable String id) {
+    public ResponseEntity<Object> getFile(@PathVariable String id, HttpServletRequest request) {
+        validateRequest(request); // Enforce validation
+
         try {
             Object fileResponse = fileService.getFileUrlFromS3(id);
 
@@ -69,7 +83,10 @@ public class FileUploadController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteFile(@PathVariable String id) {
+    public ResponseEntity<Void> deleteFile(@PathVariable String id, HttpServletRequest request) {
+
+        validateRequest(request); // Enforce validation
+
         try {
             fileService.deleteFileFromS3(id);
             return ResponseEntity.status(HttpStatus.NO_CONTENT)
@@ -94,7 +111,7 @@ public class FileUploadController {
 
     // Unsupported HTTP Methods (returns 405 Method Not Allowed)
     @RequestMapping(method = {RequestMethod.PUT, RequestMethod.PATCH, RequestMethod.OPTIONS, RequestMethod.HEAD})
-    public ResponseEntity<Object> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
+    public ResponseEntity<Object> handleMethodNotAllowed() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
                 .header(HttpHeaders.PRAGMA, "no-cache")
@@ -102,10 +119,20 @@ public class FileUploadController {
     }
 
     @RequestMapping(value = "/{id}", method = {RequestMethod.PUT, RequestMethod.PATCH, RequestMethod.OPTIONS, RequestMethod.HEAD, RequestMethod.POST})
-    public ResponseEntity<Object> handleMethodNotAllowedWithId(HttpRequestMethodNotSupportedException ex) {
+    public ResponseEntity<Object> handleMethodNotAllowedWithId() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
                 .header(HttpHeaders.PRAGMA, "no-cache")
                 .body("Method not allowed.");
+    }
+
+    private void validateRequest(HttpServletRequest request) {
+        if (!request.getParameterMap().isEmpty()) {
+            throw new IllegalArgumentException("Query parameters are not allowed");
+        }
+
+        if (request.getContentLengthLong() > 0) {
+            throw new IllegalArgumentException("Payload Not Allowed");
+        }
     }
 }
