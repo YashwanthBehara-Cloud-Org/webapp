@@ -35,11 +35,20 @@ public class HealthCheckServiceImplIntegrationTest {
             System.setProperty("DB_URL", dotenv.get("DB_URL"));
             System.setProperty("DB_USERNAME", dotenv.get("DB_USERNAME"));
             System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
+            System.setProperty("AWS_S3_BUCKET_NAME", dotenv.get("AWS_S3_BUCKET_NAME"));
+            System.setProperty("aws_access_key_id", dotenv.get("aws_access_key_id", ""));
+            System.setProperty("aws_secret_access_key", dotenv.get("aws_secret_access_key", ""));
+            System.setProperty("aws_region", dotenv.get("aws_region", "us-east-1"));
         } else {
             // In CI environment (e.g., GitHub Actions), read from system environment variables
-            System.setProperty("DB_URL", System.getenv("DB_URL"));
-            System.setProperty("DB_USERNAME", System.getenv("DB_USERNAME"));
-            System.setProperty("DB_PASSWORD", System.getenv("DB_PASSWORD"));
+            System.setProperty("DB_URL", System.getenv("DB_URL") != null ? System.getenv("DB_URL") : "");
+            System.setProperty("DB_USERNAME", System.getenv("DB_USERNAME") != null ? System.getenv("DB_USERNAME") : "");
+            System.setProperty("DB_PASSWORD", System.getenv("DB_PASSWORD") != null ? System.getenv("DB_PASSWORD") : "");
+            System.setProperty("AWS_S3_BUCKET_NAME", System.getenv("AWS_S3_BUCKET_NAME") != null ? System.getenv("AWS_S3_BUCKET_NAME") : "");
+            System.setProperty("aws_access_key_id", System.getenv("aws_access_key_id") != null ? System.getenv("aws_access_key_id") : "");
+            System.setProperty("aws_secret_access_key", System.getenv("aws_secret_access_key") != null ? System.getenv("aws_secret_access_key") : "");
+            System.setProperty("aws_region", System.getenv("aws_region") != null ? System.getenv("aws_region") : "us-east-1");
+
         }
     }
 

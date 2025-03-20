@@ -2,6 +2,7 @@ package com.cloud.webapp.controller;
 
 import com.cloud.webapp.exception.DataBaseConnectionException;
 import com.cloud.webapp.service.HealthCheckService;
+import com.cloud.webapp.util.TestEnvironmentLoader;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,16 +33,18 @@ public class HealthCheckControllerTest {
     @Autowired
     private HealthCheckService healthCheckService; // Injected from TestConfig
 
-    // Setting up env
-    @BeforeAll
-    static void setupEnvironment() {
-
-    }
 
     @BeforeEach
     void setUp() {
         doNothing().when(healthCheckService).performHealthCheck();
     }
+
+    // Load environment variables before tests
+    @BeforeAll
+    static void setupEnvironment() {
+        TestEnvironmentLoader.loadEnvironmentVariables();  // Load .env variables here
+    }
+
 
     //  Invalid methods ( PUT, POST, DELETE, PATCH )
     @Test
