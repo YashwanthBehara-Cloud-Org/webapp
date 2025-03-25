@@ -2,7 +2,11 @@ package com.cloud.webapp.controller;
 
 import com.cloud.webapp.exception.DataBaseConnectionException;
 import com.cloud.webapp.service.HealthCheckService;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -17,14 +21,32 @@ public class HealthCheckController {
     @Autowired
     private HealthCheckService healthCheckService;
 
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    private static final Logger logger = LoggerFactory.getLogger(HealthCheckController.class);
+
     @GetMapping
     public ResponseEntity<Void> performHealthCheck(HttpServletRequest request) {
+
+        Timer.Sample sample = Timer.start(meterRegistry);
+        meterRegistry.counter("api.healthz.getHealthz.count").increment();
+
         validateRequest(request);
+
+        logger.info("Get - Health check endpoint hit");
+
 
         try {
             healthCheckService.performHealthCheck();
         } catch (Exception e) {
+
+            logger.error("Get - Health check failed: {}", e.getMessage());
+
             throw new DataBaseConnectionException("Database connection failed", e);
+        }
+        finally {
+            sample.stop(meterRegistry.timer("api.healthz.getHealthz.timer"));
         }
 
         return ResponseEntity.ok()

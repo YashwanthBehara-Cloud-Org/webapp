@@ -78,6 +78,17 @@ build {
       "echo '[Install]' | sudo tee -a /etc/systemd/system/myapp.service",
       "echo 'WantedBy=multi-user.target' | sudo tee -a /etc/systemd/system/myapp.service",
 
+      # Install CloudWatch Agent
+      wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+      sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+
+      # Create CloudWatch Agent config directory
+      sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
+
+      # Copy CloudWatch config (this will be overridden by user-data)
+      sudo touch /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+      
+
       # DO NOT ENABLE OR START THE SERVICE HERE
       "sudo systemctl daemon-reload"
     ]

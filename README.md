@@ -200,3 +200,67 @@ Contains commands to :
    - Creates an environment file for the application.
    - Configures a service file to initialize dependencies, MySQL server, and run the application upon instance creation using the custom machine image.
 
+### Assignment - 5
+
+#### Objective
+1. To remove the local installation of MySQL Database in the AMI and connect to RDS DB Instance on web application start-up 
+2. And to also store the uploaded files metadata in S3 Buckets.
+
+
+---
+
+#### S3 Bucket
+- Create a private S3 bucket with a unique UUID-based name.
+- Allow Terraform to delete the bucket even if it contains objects:
+  ```bash
+  aws s3 rm s3://<bucket-name> --recursive
+  ```
+- Enable default encryption (AES256).
+- Configure a lifecycle policy to transition objects to STANDARD_IA after 30 days.
+
+---
+
+#### DB Security Group
+- Create a dedicated EC2 security group for the RDS instance.
+- Add an ingress rule to allow **TCP traffic on port 3306** from the **application security group**.
+- Block all public access.
+
+---
+
+#### RDS Parameter Group
+- Create a **custom DB parameter group** matching your DB engine/version.
+- Apply this parameter group to the RDS instance (avoid using default).
+
+---
+
+#### RDS Instance Configuration
+
+| Property              | Value                 |
+|-----------------------|-----------------------|
+| Database Engine       | MySQL                 |
+| DB Instance Class     | Cheapest available    |
+| Multi-AZ Deployment   | No                    |
+| DB Identifier         | csye6225              |
+| Master Username       | csye6225              |
+| Master Password       | Strong password       |
+| Subnet Group          | Private Subnet Only   |
+| Public Accessibility  | No                    |
+| DB Name               | csye6225              |
+
+Attach the database security group to this RDS instance.
+
+---
+
+#### EC2 User Data Configuration
+- Create a user data script which will run when EC2 Instance is provisioned
+  - So, the flow goes like this..first the packer's script runs..which will create the `myapp.service` file
+  - Then, the EC2 Script ( i.e : `user-script` ) runs which will configure the RDS DB , creates a user `csye6225` for that DB, inject the environment variables into `.env` file and execute the command to run the service file
+  - Then, the service file runs..which will run the application ( web app )
+
+---
+
+#### Web Application
+- Must use the RDS DB when deployed on EC2.
+- Local DB usage is only permitted for integration testing.
+
+---
