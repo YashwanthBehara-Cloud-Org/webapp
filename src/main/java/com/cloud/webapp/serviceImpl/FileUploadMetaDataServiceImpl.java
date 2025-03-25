@@ -1,6 +1,7 @@
 
 package com.cloud.webapp.serviceImpl;
 
+import com.cloud.webapp.exception.DataBaseConnectionException;
 import com.cloud.webapp.model.FileUploadMetaData;
 import com.cloud.webapp.repository.FileUploadMetaDataRepository;
 import com.cloud.webapp.service.FileUploadMetaDataService;
@@ -81,9 +82,15 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
 
             // Save metadata to local DB (e.g., MySQL)
             FileUploadMetaData fileMetadata = new FileUploadMetaData(filename, file.getContentType(), file.getSize(), "s3://" + bucketName + "/" + filename);
-            fileMetadataRepository.save(fileMetadata);
+            
+            try {
+                fileMetadataRepository.save(fileMetadata);
+            } catch (Exception e) {
+                throw new DataBaseConnectionException("Failed to connect to DB", e);
+            }
+            
             System.out.println("File metadata saved to database.");
-
+            
             // Create response object directly here
             String fileName = fileMetadata.getFilename();
             String fileId = fileMetadata.getId();
@@ -102,7 +109,14 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
     @Override
     public Object getFileUrlFromS3(String id) {
         // Retrieve the file metadata from the database using the file ID
-        Optional<FileUploadMetaData> fileMetaDataOptional = fileMetadataRepository.findById(id);
+
+        Optional<FileUploadMetaData> fileMetaDataOptional;
+        try {
+            fileMetaDataOptional = fileMetadataRepository.findById(id);
+        } catch (Exception e) {
+            throw new DataBaseConnectionException("Failed to connect to DB", e);
+        }
+
         if (fileMetaDataOptional.isPresent()) {
             FileUploadMetaData fileMeta = fileMetaDataOptional.get();
 
@@ -129,7 +143,13 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
     @Override
     public void deleteFileFromS3(String id) {
         // Check if the file exists in the database
-        Optional<FileUploadMetaData> fileMetaDataOptional = fileMetadataRepository.findById(id);
+
+        Optional<FileUploadMetaData> fileMetaDataOptional;
+        try {
+            fileMetaDataOptional = fileMetadataRepository.findById(id);
+        } catch (Exception e) {
+            throw new DataBaseConnectionException("Failed to connect to DB", e);
+        }
 
         if (fileMetaDataOptional.isEmpty()) {
             throw new RuntimeException("File with ID " + id + " not found. Cannot delete.");
@@ -147,7 +167,11 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
 
         s3Client.deleteObject(deleteObjectRequest);
 
-        fileMetadataRepository.deleteById(id);
+        try {
+            fileMetadataRepository.deleteById(id);
+        } catch (Exception e) {
+            throw new DataBaseConnectionException("Failed to connect to DB", e);
+        }
     }
 
 }

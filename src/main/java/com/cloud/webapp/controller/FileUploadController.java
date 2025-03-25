@@ -1,5 +1,6 @@
 package com.cloud.webapp.controller;
 
+import com.cloud.webapp.exception.DataBaseConnectionException;
 import com.cloud.webapp.exception.FileNotFoundException;
 import com.cloud.webapp.exception.InvalidFileException;
 import com.cloud.webapp.model.FileUploadMetaData;
@@ -47,6 +48,9 @@ public class FileUploadController {
                     .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
                     .header(HttpHeaders.PRAGMA, "no-cache")
                     .body(fileResponse);  // Return the response object with the desired fields
+        } catch (DataBaseConnectionException ex) {
+            // Let GlobalExceptionHandler handle it — rethrow
+            throw ex;
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
@@ -66,13 +70,16 @@ public class FileUploadController {
                     .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
                     .header(HttpHeaders.PRAGMA, "no-cache")
                     .body(fileResponse);  // Return the file metadata as response
+        } catch (DataBaseConnectionException ex) {
+            // Let GlobalExceptionHandler handle it — rethrow
+            throw ex;
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-                    .header(HttpHeaders.PRAGMA, "no-cache")
-                    .body("File not found: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+                        .header(HttpHeaders.PRAGMA, "no-cache")
+                        .body("File not found: " + e.getMessage());
+            }
         }
-    }
 
     @GetMapping
     public ResponseEntity<Object> getFileBadRequest() {
@@ -93,6 +100,9 @@ public class FileUploadController {
                     .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
                     .header(HttpHeaders.PRAGMA, "no-cache")
                     .build(); // Return no content on successful deletion
+        } catch (DataBaseConnectionException ex) {
+            // Let GlobalExceptionHandler handle it — rethrow
+            throw ex;
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
