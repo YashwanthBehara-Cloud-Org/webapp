@@ -3,6 +3,7 @@ package com.cloud.webapp.controller;
 import com.cloud.webapp.exception.DataBaseConnectionException;
 import com.cloud.webapp.service.HealthCheckService;
 import com.cloud.webapp.util.TestEnvironmentLoader;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,8 @@ public class HealthCheckControllerTest {
     @Autowired
     private HealthCheckService healthCheckService; // Injected from TestConfig
 
+    @Autowired
+    private MeterRegistry meterRegistry;
 
     @BeforeEach
     void setUp() {
