@@ -63,6 +63,11 @@ build {
       "sudo chown -R csye6225:csye6225 /opt/myapp",
       "sudo chmod -R 755 /opt/myapp",
 
+      # Create log directory for application
+      "sudo mkdir -p /opt/myapp/logs",
+      "sudo chown csye6225:csye6225 /opt/myapp/logs",
+      "sudo chmod 755 /opt/myapp/logs"
+
       # Configure systemd service (but DO NOT enable/start it)
       "echo '[Unit]' | sudo tee /etc/systemd/system/myapp.service",
       "echo 'Description=My Java Application' | sudo tee -a /etc/systemd/system/myapp.service",
