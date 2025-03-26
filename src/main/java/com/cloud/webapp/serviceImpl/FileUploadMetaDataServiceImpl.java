@@ -1,6 +1,7 @@
 
 package com.cloud.webapp.serviceImpl;
 
+import com.cloud.webapp.exception.DataBaseConnectionException;
 import com.cloud.webapp.model.FileUploadMetaData;
 import com.cloud.webapp.repository.FileUploadMetaDataRepository;
 import com.cloud.webapp.service.FileUploadMetaDataService;
@@ -103,10 +104,16 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
             // Save metadata to local DB (e.g., MySQL)
             FileUploadMetaData fileMetadata = new FileUploadMetaData(filename, file.getContentType(), file.getSize(), "s3://" + bucketName + "/" + filename);
 
+            try {
+                Timer.Sample dbSample = Timer.start(meterRegistry);
+                fileMetadataRepository.save(fileMetadata);
+                dbSample.stop(meterRegistry.timer("db.insert.timer"));
+            } catch (Exception e) {
+                throw new DataBaseConnectionException("Failed to connect to DB", e);
+            }
 
-            Timer.Sample dbSample = Timer.start(meterRegistry);
-            fileMetadataRepository.save(fileMetadata);
-            dbSample.stop(meterRegistry.timer("db.insert.timer"));
+
+           
 
             System.out.println("File metadata saved to database.");
 
@@ -128,9 +135,15 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
     @Override
     public Object getFileUrlFromS3(String id) {
         // Retrieve the file metadata from the database using the file ID
-        Timer.Sample dbSample = Timer.start(meterRegistry);
-        Optional<FileUploadMetaData> fileMetaDataOptional = fileMetadataRepository.findById(id);
-        dbSample.stop(meterRegistry.timer("db.fetch.timer"));
+
+        Optional<FileUploadMetaData> fileMetaDataOptional;
+        try {
+            Timer.Sample dbSample = Timer.start(meterRegistry);
+            fileMetaDataOptional = fileMetadataRepository.findById(id);
+            dbSample.stop(meterRegistry.timer("db.fetch.timer"));
+        } catch (Exception e) {
+            throw new DataBaseConnectionException("Failed to connect to DB", e);
+        }
 
         if (fileMetaDataOptional.isPresent()) {
             FileUploadMetaData fileMeta = fileMetaDataOptional.get();
@@ -158,10 +171,15 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
     @Override
     public void deleteFileFromS3(String id) {
         // Check if the file exists in the database
-        Timer.Sample dbSample = Timer.start(meterRegistry);
-        Optional<FileUploadMetaData> fileMetaDataOptional = fileMetadataRepository.findById(id);
-        dbSample.stop(meterRegistry.timer("db.find.timer"));
 
+        Optional<FileUploadMetaData> fileMetaDataOptional;
+        try {
+            Timer.Sample dbSample = Timer.start(meterRegistry);
+            fileMetaDataOptional = fileMetadataRepository.findById(id);
+            dbSample.stop(meterRegistry.timer("db.find.timer"));
+        } catch (Exception e) {
+            throw new DataBaseConnectionException("Failed to connect to DB", e);
+        }
 
         if (fileMetaDataOptional.isEmpty()) {
             throw new RuntimeException("File with ID " + id + " not found. Cannot delete.");
@@ -181,9 +199,14 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
         s3Client.deleteObject(deleteObjectRequest);
         s3Sample.stop(meterRegistry.timer("s3.delete.timer"));
 
-
-        Timer.Sample dbDeleteSample = Timer.start(meterRegistry);
-        fileMetadataRepository.deleteById(id);
-        dbDeleteSample.stop(meterRegistry.timer("db.delete.timer"));    }
+        try {
+            Timer.Sample dbDeleteSample = Timer.start(meterRegistry);
+            fileMetadataRepository.deleteById(id);
+            dbDeleteSample.stop(meterRegistry.timer("db.delete.timer"));
+        } catch (Exception e) {
+            throw new DataBaseConnectionException("Failed to connect to DB", e);
+        }
+        
+   }
 
 }

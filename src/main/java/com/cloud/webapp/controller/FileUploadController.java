@@ -1,5 +1,6 @@
 package com.cloud.webapp.controller;
 
+import com.cloud.webapp.exception.DataBaseConnectionException;
 import com.cloud.webapp.exception.FileNotFoundException;
 import com.cloud.webapp.exception.InvalidFileException;
 import com.cloud.webapp.model.FileUploadMetaData;
@@ -68,6 +69,10 @@ public class FileUploadController {
                     .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
                     .header(HttpHeaders.PRAGMA, "no-cache")
                     .body(fileResponse);  // Return the response object with the desired fields
+        
+        } catch (DataBaseConnectionException ex) {
+            // Let GlobalExceptionHandler handle it — rethrow
+            throw ex;
         } catch (Exception e) {
 
             logger.error("File upload failed", e);
@@ -97,6 +102,9 @@ public class FileUploadController {
                     .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
                     .header(HttpHeaders.PRAGMA, "no-cache")
                     .body(fileResponse);  // Return the file metadata as response
+        } catch (DataBaseConnectionException ex) {
+            // Let GlobalExceptionHandler handle it — rethrow
+            throw ex;
         } catch (Exception e) {
 
             logger.error("Error fetching file with ID {}: {}", id, e.getMessage());
@@ -138,6 +146,10 @@ public class FileUploadController {
                     .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
                     .header(HttpHeaders.PRAGMA, "no-cache")
                     .build(); // Return no content on successful deletion
+                    
+        } catch (DataBaseConnectionException ex) {
+            // Let GlobalExceptionHandler handle it — rethrow
+            throw ex;
         } catch (Exception e) {
 
             logger.error("File deletion failed for ID {}: {}", id, e.getMessage());

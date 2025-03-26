@@ -16,7 +16,9 @@ public class StatsDMetricsConfig {
 
     @Bean
     public StatsdConfig statsdConfig() {
+
         return new StatsdConfig() {
+
             @Override
             public String get(String key) {
                 return null; // default values
@@ -29,7 +31,7 @@ public class StatsDMetricsConfig {
 
             @Override
             public String host() {
-                return "localhost"; // On EC2, use 127.0.0.1 or the agent IP
+                return System.getProperty("STATSD_HOST", "localhost");
             }
 
             @Override
