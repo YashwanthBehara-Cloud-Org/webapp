@@ -66,7 +66,7 @@ build {
       # Create log directory for application
       "sudo mkdir -p /opt/myapp/logs",
       "sudo chown csye6225:csye6225 /opt/myapp/logs",
-      "sudo chmod 755 /opt/myapp/logs"
+      "sudo chmod 755 /opt/myapp/logs",
 
       # Configure systemd service (but DO NOT enable/start it)
       "echo '[Unit]' | sudo tee /etc/systemd/system/myapp.service",
@@ -84,15 +84,15 @@ build {
       "echo 'WantedBy=multi-user.target' | sudo tee -a /etc/systemd/system/myapp.service",
 
       # Install CloudWatch Agent
-      wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
-      sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+      "wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb",
+      "sudo dpkg -i -E ./amazon-cloudwatch-agent.deb",
 
       # Create CloudWatch Agent config directory
-      sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
+      "sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc",
 
       # Copy CloudWatch config (this will be overridden by user-data)
-      sudo touch /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
-      
+      "sudo touch /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
+
 
       # DO NOT ENABLE OR START THE SERVICE HERE
       "sudo systemctl daemon-reload"
