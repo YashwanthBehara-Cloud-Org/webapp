@@ -1,5 +1,6 @@
 package com.cloud.webapp.controller;
 
+import com.cloud.webapp.config.StatsDMetricsConfig;
 import com.cloud.webapp.exception.DataBaseConnectionException;
 import com.cloud.webapp.service.HealthCheckService;
 import com.cloud.webapp.util.TestEnvironmentLoader;
@@ -23,7 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ActiveProfiles("test")
-@WebMvcTest(HealthCheckController.class)
+@WebMvcTest(controllers = HealthCheckController.class, excludeAutoConfiguration = StatsDMetricsConfig.class)
 @Import(TestConfig.class)
 
 public class HealthCheckControllerTest {
