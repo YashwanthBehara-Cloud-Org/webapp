@@ -88,7 +88,7 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
 
                 Timer.Sample s3Sample = Timer.start(meterRegistry);
                 s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, file.getSize()));
-                s3Sample.stop(meterRegistry.timer("s3.upload.timer"));
+                s3Sample.stop(meterRegistry.timer("aws.s3.file.upload.timer"));
 
                 logger.info("S3 upload complete");
 
@@ -107,13 +107,10 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
             try {
                 Timer.Sample dbSample = Timer.start(meterRegistry);
                 fileMetadataRepository.save(fileMetadata);
-                dbSample.stop(meterRegistry.timer("db.insert.timer"));
+                dbSample.stop(meterRegistry.timer("db.file.insert.timer"));
             } catch (Exception e) {
                 throw new DataBaseConnectionException("Failed to connect to DB", e);
             }
-
-
-           
 
             System.out.println("File metadata saved to database.");
 
@@ -140,8 +137,10 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
         try {
             Timer.Sample dbSample = Timer.start(meterRegistry);
             fileMetaDataOptional = fileMetadataRepository.findById(id);
-            dbSample.stop(meterRegistry.timer("db.fetch.timer"));
+            dbSample.stop(meterRegistry.timer("db.file.fetch.timer"));
+            logger.info("Fetched metadata from DB for file ID: {}", id);
         } catch (Exception e) {
+            logger.error("DB connection failed while fetching file ID: {}", id, e);
             throw new DataBaseConnectionException("Failed to connect to DB", e);
         }
 
@@ -176,8 +175,10 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
         try {
             Timer.Sample dbSample = Timer.start(meterRegistry);
             fileMetaDataOptional = fileMetadataRepository.findById(id);
-            dbSample.stop(meterRegistry.timer("db.find.timer"));
+            dbSample.stop(meterRegistry.timer("db.file.find.timer"));
+            logger.info("Metadata lookup complete for delete. File found: {}", fileMetaDataOptional.isPresent());
         } catch (Exception e) {
+            logger.error("DB connection failed while fetching file ID for delete: {}", id, e);
             throw new DataBaseConnectionException("Failed to connect to DB", e);
         }
 
@@ -197,13 +198,15 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
 
         Timer.Sample s3Sample = Timer.start(meterRegistry);
         s3Client.deleteObject(deleteObjectRequest);
-        s3Sample.stop(meterRegistry.timer("s3.delete.timer"));
+        s3Sample.stop(meterRegistry.timer("aws.s3.file.delete.timer"));
 
         try {
             Timer.Sample dbDeleteSample = Timer.start(meterRegistry);
             fileMetadataRepository.deleteById(id);
-            dbDeleteSample.stop(meterRegistry.timer("db.delete.timer"));
+            dbDeleteSample.stop(meterRegistry.timer("db.file.delete.timer"));
+            logger.info("Metadata deleted from DB for file ID: {}", id);
         } catch (Exception e) {
+            logger.error("DB deletion failed for file ID: {}", id, e);
             throw new DataBaseConnectionException("Failed to connect to DB", e);
         }
         

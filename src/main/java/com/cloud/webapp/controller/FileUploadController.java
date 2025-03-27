@@ -37,7 +37,7 @@ public class FileUploadController {
     @PostMapping
     public ResponseEntity<Object> uploadFile(@RequestParam("file") MultipartFile[] files, HttpServletRequest request) {
         Timer.Sample sample = Timer.start(meterRegistry);
-        meterRegistry.counter("POST.file.upload.count").increment();
+        meterRegistry.counter("api.post.file.upload.count").increment();
 
         try {
 
@@ -90,7 +90,7 @@ public class FileUploadController {
     @GetMapping("/{id}")
     public ResponseEntity<Object> getFile(@PathVariable String id, HttpServletRequest request) {
         Timer.Sample sample = Timer.start(meterRegistry);
-        meterRegistry.counter("GET.file.count").increment();
+        meterRegistry.counter("api.get.file.count").increment();
 
         validateRequest(request); // Enforce validation
         logger.info("Fetching file with ID: {}", id);
@@ -130,7 +130,7 @@ public class FileUploadController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFile(@PathVariable String id, HttpServletRequest request) {
         Timer.Sample sample = Timer.start(meterRegistry);
-        meterRegistry.counter("DELETE.file.count").increment();
+        meterRegistry.counter("api.delete.file.count").increment();
 
         validateRequest(request); // Enforce validation
 

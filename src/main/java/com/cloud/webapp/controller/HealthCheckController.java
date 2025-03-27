@@ -46,7 +46,7 @@ public class HealthCheckController {
             throw new DataBaseConnectionException("Database connection failed", e);
         }
         finally {
-            sample.stop(meterRegistry.timer("api.healthz.getHealthz.timer"));
+            sample.stop(meterRegistry.timer("api.get.healthz.timer"));
         }
 
         return ResponseEntity.ok()
