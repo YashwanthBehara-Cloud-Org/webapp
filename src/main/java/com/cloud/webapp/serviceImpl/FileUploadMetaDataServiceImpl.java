@@ -1,9 +1,14 @@
 
 package com.cloud.webapp.serviceImpl;
 
+import com.cloud.webapp.exception.DataBaseConnectionException;
 import com.cloud.webapp.model.FileUploadMetaData;
 import com.cloud.webapp.repository.FileUploadMetaDataRepository;
 import com.cloud.webapp.service.FileUploadMetaDataService;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,14 +32,19 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
     private final S3Client s3Client;
     private final String bucketName;
     private final FileUploadMetaDataRepository fileMetadataRepository;
+    private final MeterRegistry meterRegistry;
+
+
+    private static final Logger logger = LoggerFactory.getLogger(FileUploadMetaDataServiceImpl.class);
 
     public FileUploadMetaDataServiceImpl(@Value("${AWS_S3_BUCKET_NAME}") String bucketName,
-                                         FileUploadMetaDataRepository fileMetadataRepository) {
+                                         FileUploadMetaDataRepository fileMetadataRepository,
+                                         MeterRegistry meterRegistry) {
 
         // Fetching credentials from system properties or environment variables
-        String awsAccessKeyId = System.getProperty("aws_access_key_id", "");
-        String awsSecretAccessKey = System.getProperty("aws_secret_access_key", "");
-        String awsRegion = System.getProperty("aws_region", "us-east-1");
+        String awsAccessKeyId = System.getProperty("aws.accessKeyId", "");
+        String awsSecretAccessKey = System.getProperty("aws.secretAccessKey", "");
+        String awsRegion = System.getProperty("aws.region", "us-east-1");
 
         // If the credentials are provided, use them. Otherwise, fall back to default credentials provider (IAM role for EC2 or AWS credentials file)
         if (!awsAccessKeyId.isEmpty() && !awsSecretAccessKey.isEmpty()) {
@@ -51,11 +61,15 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
 
         this.bucketName = bucketName;
         this.fileMetadataRepository = fileMetadataRepository;
+        this.meterRegistry = meterRegistry;
+
     }
 
     @Override
     public Object uploadFileToS3(MultipartFile file) throws IOException {
         System.out.println("Starting file upload...");
+        logger.info("Starting upload for file: {}", file.getOriginalFilename());
+
         String filename = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
         System.out.println("Generated filename: " + filename);
 
@@ -71,17 +85,33 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
             System.out.println("Uploading file to S3 with request: " + putObjectRequest);
 
             try {
+
+                Timer.Sample s3Sample = Timer.start(meterRegistry);
                 s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, file.getSize()));
+                s3Sample.stop(meterRegistry.timer("aws.s3.file.upload.timer"));
+
+                logger.info("S3 upload complete");
+
                 System.out.println("File uploaded successfully to S3.");
             } catch (Exception e) {
                 System.out.println("Error uploading file to S3: " + e.getMessage());
+                logger.error("S3 upload error: ", e);
+
                 e.printStackTrace(); 
                 return "Error uploading file to S3: " + e.getMessage();
             }
 
             // Save metadata to local DB (e.g., MySQL)
             FileUploadMetaData fileMetadata = new FileUploadMetaData(filename, file.getContentType(), file.getSize(), "s3://" + bucketName + "/" + filename);
-            fileMetadataRepository.save(fileMetadata);
+
+            try {
+                Timer.Sample dbSample = Timer.start(meterRegistry);
+                fileMetadataRepository.save(fileMetadata);
+                dbSample.stop(meterRegistry.timer("db.file.insert.timer"));
+            } catch (Exception e) {
+                throw new DataBaseConnectionException("Failed to connect to DB", e);
+            }
+
             System.out.println("File metadata saved to database.");
 
             // Create response object directly here
@@ -102,7 +132,18 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
     @Override
     public Object getFileUrlFromS3(String id) {
         // Retrieve the file metadata from the database using the file ID
-        Optional<FileUploadMetaData> fileMetaDataOptional = fileMetadataRepository.findById(id);
+
+        Optional<FileUploadMetaData> fileMetaDataOptional;
+        try {
+            Timer.Sample dbSample = Timer.start(meterRegistry);
+            fileMetaDataOptional = fileMetadataRepository.findById(id);
+            dbSample.stop(meterRegistry.timer("db.file.fetch.timer"));
+            logger.info("Fetched metadata from DB for file ID: {}", id);
+        } catch (Exception e) {
+            logger.error("DB connection failed while fetching file ID: {}", id, e);
+            throw new DataBaseConnectionException("Failed to connect to DB", e);
+        }
+
         if (fileMetaDataOptional.isPresent()) {
             FileUploadMetaData fileMeta = fileMetaDataOptional.get();
 
@@ -129,7 +170,17 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
     @Override
     public void deleteFileFromS3(String id) {
         // Check if the file exists in the database
-        Optional<FileUploadMetaData> fileMetaDataOptional = fileMetadataRepository.findById(id);
+
+        Optional<FileUploadMetaData> fileMetaDataOptional;
+        try {
+            Timer.Sample dbSample = Timer.start(meterRegistry);
+            fileMetaDataOptional = fileMetadataRepository.findById(id);
+            dbSample.stop(meterRegistry.timer("db.file.find.timer"));
+            logger.info("Metadata lookup complete for delete. File found: {}", fileMetaDataOptional.isPresent());
+        } catch (Exception e) {
+            logger.error("DB connection failed while fetching file ID for delete: {}", id, e);
+            throw new DataBaseConnectionException("Failed to connect to DB", e);
+        }
 
         if (fileMetaDataOptional.isEmpty()) {
             throw new RuntimeException("File with ID " + id + " not found. Cannot delete.");
@@ -145,9 +196,20 @@ public class FileUploadMetaDataServiceImpl implements FileUploadMetaDataService 
                 .key(fileKey)
                 .build();
 
+        Timer.Sample s3Sample = Timer.start(meterRegistry);
         s3Client.deleteObject(deleteObjectRequest);
+        s3Sample.stop(meterRegistry.timer("aws.s3.file.delete.timer"));
 
-        fileMetadataRepository.deleteById(id);
-    }
+        try {
+            Timer.Sample dbDeleteSample = Timer.start(meterRegistry);
+            fileMetadataRepository.deleteById(id);
+            dbDeleteSample.stop(meterRegistry.timer("db.file.delete.timer"));
+            logger.info("Metadata deleted from DB for file ID: {}", id);
+        } catch (Exception e) {
+            logger.error("DB deletion failed for file ID: {}", id, e);
+            throw new DataBaseConnectionException("Failed to connect to DB", e);
+        }
+        
+   }
 
 }

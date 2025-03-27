@@ -14,9 +14,11 @@ public class WebappApplication {
 		System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
 		System.setProperty("DB_URL", dotenv.get("DB_URL"));
 		System.setProperty("AWS_S3_BUCKET_NAME", dotenv.get("AWS_S3_BUCKET_NAME",""));
-		System.setProperty("aws_access_key_id", dotenv.get("aws_access_key_id", ""));
-		System.setProperty("aws_secret_access_key", dotenv.get("aws_secret_access_key", ""));
-		System.setProperty("aws_region", dotenv.get("aws_region", "us-east-1"));
+		System.setProperty("aws.accessKeyId", dotenv.get("aws_access_key_id", ""));
+		System.setProperty("aws.secretAccessKey", dotenv.get("aws_secret_access_key", ""));
+		System.setProperty("aws.region", dotenv.get("aws_region", "us-east-1"));
+		System.setProperty("STATSD_HOST", dotenv.get("STATSD_HOST", "localhost"));
+
 		SpringApplication.run(WebappApplication.class, args);
 	}
 }
