@@ -1,6 +1,8 @@
 package com.cloud.webapp.controller;
 
 import com.cloud.webapp.service.HealthCheckService;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,5 +15,11 @@ public class TestConfig {
     @Primary
     public HealthCheckService healthCheckService() {
         return Mockito.mock(HealthCheckService.class);
+    }
+
+    @Bean
+    @Primary
+    public MeterRegistry meterRegistry() {
+        return new SimpleMeterRegistry();
     }
 }

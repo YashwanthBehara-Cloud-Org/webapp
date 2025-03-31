@@ -1,8 +1,10 @@
 package com.cloud.webapp.controller;
 
+import com.cloud.webapp.config.StatsDMetricsConfig;
 import com.cloud.webapp.exception.DataBaseConnectionException;
 import com.cloud.webapp.service.HealthCheckService;
 import com.cloud.webapp.util.TestEnvironmentLoader;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,7 +15,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import io.github.cdimascio.dotenv.Dotenv;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -33,6 +34,8 @@ public class HealthCheckControllerTest {
     @Autowired
     private HealthCheckService healthCheckService; // Injected from TestConfig
 
+    @Autowired
+    private MeterRegistry meterRegistry;
 
     @BeforeEach
     void setUp() {
