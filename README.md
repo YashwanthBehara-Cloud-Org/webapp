@@ -264,3 +264,30 @@ Attach the database security group to this RDS instance.
 - Local DB usage is only permitted for integration testing.
 
 ---
+
+### Assignment - 6
+
+#### Objective
+To configure **CloudWatch Logs** and **Custom Metrics** monitoring using **Micrometer + StatsD + CloudWatch Agent**.
+
+#### Logging Setup using CloudWatch Agent
+
+1. CloudWatch Agent is installed in the AMI (via Packer).
+2. It’s configured and started using Terraform EC2 `user_data`.
+3. IAM role with logs permissions (`logs:PutLogEvents`, etc.) is attached.
+
+#### Custom Metrics with Micrometer + StatsD + CloudWatch
+
+1. Micrometer is used in Spring Boot to define custom counters and timers.
+2. Metrics are sent as UDP packets to `localhost:8125` using `StatsdMeterRegistry`.
+3. CloudWatch Agent listens to port 8125 and forwards these metrics to AWS CloudWatch.
+4. EC2 IAM Role allows `cloudwatch:PutMetricData`.
+5. Metrics are visible under CloudWatch → Metrics → StatsD namespace.
+
+#### Summary
+
+- AMI contains CloudWatch Agent.
+- EC2 startup configures and runs the agent.
+- Metrics are emitted via Micrometer → StatsD → CloudWatch Agent → AWS CloudWatch.
+- Secure setup (no hardcoded credentials).
+
