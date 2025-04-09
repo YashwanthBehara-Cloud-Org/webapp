@@ -83,6 +83,70 @@ jobs:
 
       - name: Test Demo user AWS credentials
         run: aws sts get-caller-identity
+
+      - name: Create new Launch Template version in DEMO
+        id: create_lt_version
+        run: |
+          LT_ID=$(aws ec2 describe-launch-templates \
+            --query "LaunchTemplates[?LaunchTemplateName=='csye6225-'].LaunchTemplateId" \
+            --output text)
+
+          echo "Launch Template ID: $LT_ID"
+
+          NEW_VERSION=$(aws ec2 create-launch-template-version \
+            --launch-template-id "$LT_ID" \
+            --source-version '$Latest' \
+            --launch-template-data "{\"ImageId\":\"${{ env.AMI_ID }}\"}" \
+            --query 'LaunchTemplateVersion.VersionNumber' \
+            --output text)
+
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
+      - name: Update Auto Scaling Group with latest Launch Template version
+        run: |
+          aws autoscaling update-auto-scaling-group \
+            --auto-scaling-group-name csye6225_asg \
+            --launch-template "LaunchTemplateName=csye6225-,Version=$Latest"
+
+      - name: Trigger ASG instance refresh
+        id: instance_refresh
+        run: |
+            REFRESH_ID=$(aws autoscaling start-instance-refresh \
+              --auto-scaling-group-name csye6225_asg \
+              --strategy Rolling \
+              --query 'InstanceRefreshId' \
+              --output text)
+          
+            echo "REFRESH_ID=$REFRESH_ID" >> $GITHUB_ENV
+
+            
+      - name: Wait for Instance Refresh to Complete
+        run: |
+            echo "Waiting for instance refresh to complete..."
+          
+            for i in {1..30}; do
+              STATUS=$(aws autoscaling describe-instance-refreshes \
+                --auto-scaling-group-name csye6225_asg \
+                --instance-refresh-ids ${{ env.REFRESH_ID }} \
+                --query 'InstanceRefreshes[0].Status' \
+                --output text)
+          
+              echo "Refresh status: $STATUS"
+          
+              if [[ "$STATUS" == "Successful" ]]; then
+                echo "Instance refresh completed successfully"
+                exit 0
+              elif [[ "$STATUS" == "Failed" || "$STATUS" == "Cancelled" ]]; then
+                echo "Instance refresh failed"
+                exit 1
+              fi
+          
+              sleep 30
+            done
+          
+            echo "Timeout waiting for instance refresh"
+            exit 1
+          
           
 
 
