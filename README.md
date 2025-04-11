@@ -291,10 +291,7 @@ To configure **CloudWatch Logs** and **Custom Metrics** monitoring using **Micro
 - Metrics are emitted via Micrometer → StatsD → CloudWatch Agent → AWS CloudWatch.
 - Secure setup (no hardcoded credentials).
 
-Always show details
-from pathlib import Path
 
-assignment_7_md = """
 ### Assignment - 7
 
 #### Objective
