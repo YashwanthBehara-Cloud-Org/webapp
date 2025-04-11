@@ -108,6 +108,7 @@ jobs:
             --output text)
       
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "Created new LT version: $NEW_VERSION"
 
       - name: Update Auto Scaling Group with latest Launch Template version
         run: |
