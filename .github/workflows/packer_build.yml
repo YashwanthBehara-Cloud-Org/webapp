@@ -113,7 +113,7 @@ jobs:
         run: |
             aws autoscaling update-auto-scaling-group \
               --auto-scaling-group-name csye6225_asg \
-              --launch-template "LaunchTemplateName=csye6225-launch-template,Version=$NEW_VERSION"
+              --launch-template "LaunchTemplateName=csye6225-launch-template,Version=${{ env.NEW_VERSION }}"
       
       - name: Trigger ASG instance refresh
         id: instance_refresh
