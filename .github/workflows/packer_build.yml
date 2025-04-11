@@ -130,30 +130,28 @@ jobs:
             
       - name: Wait for Instance Refresh to Complete
         run: |
-            echo "Waiting for instance refresh to complete..."
+              echo "Waiting for instance refresh to complete..."
           
-            for i in {1..30}; do
-              STATUS=$(aws autoscaling describe-instance-refreshes \
-                --auto-scaling-group-name csye6225_asg \
-                --instance-refresh-ids ${{ env.REFRESH_ID }} \
-                --query 'InstanceRefreshes[0].Status' \
-                --output text)
+              while true; do
+                STATUS=$(aws autoscaling describe-instance-refreshes \
+                  --auto-scaling-group-name csye6225_asg \
+                  --instance-refresh-ids ${{ env.REFRESH_ID }} \
+                  --query 'InstanceRefreshes[0].Status' \
+                  --output text)
           
-              echo "Refresh status: $STATUS"
+                echo "Refresh status: $STATUS"
           
-              if [[ "$STATUS" == "Successful" ]]; then
-                echo "Instance refresh completed successfully"
-                exit 0
-              elif [[ "$STATUS" == "Failed" || "$STATUS" == "Cancelled" ]]; then
-                echo "Instance refresh failed"
-                exit 1
-              fi
+                if [[ "$STATUS" == "Successful" ]]; then
+                  echo "Instance refresh completed successfully"
+                  exit 0
+                elif [[ "$STATUS" == "Failed" || "$STATUS" == "Cancelled" ]]; then
+                  echo "Instance refresh failed"
+                  exit 1
+                fi
           
-              sleep 30
-            done
+                sleep 30
+              done
           
-            echo "Timeout waiting for instance refresh"
-            exit 1
           
           
 
