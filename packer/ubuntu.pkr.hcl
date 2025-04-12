@@ -93,6 +93,16 @@ build {
       # Copy CloudWatch config (this will be overridden by user-data)
       "sudo touch /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
 
+      # Install AWS CLI if not present
+      "if ! command -v aws &>/dev/null; then " +
+      "  echo 'AWS CLI not found, installing...'; " +
+      "  sudo apt-get update; " +
+      "  sudo apt-get install -y unzip curl; " +
+      "  curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip'; " +
+      "  unzip awscliv2.zip; " +
+      "  sudo ./aws/install; " +
+      "  rm -rf awscliv2.zip aws; " +
+      "fi",
 
       # DO NOT ENABLE OR START THE SERVICE HERE
       "sudo systemctl daemon-reload"
