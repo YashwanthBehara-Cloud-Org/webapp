@@ -393,3 +393,14 @@ To configure **Auto Scaling**, **Application Load Balancer (ALB)**, and **Domain
 - ASG scales based on load (CPU usage).
 - EC2s auto-configure using user_data and access logs/metrics via CloudWatch.
 
+
+### Assignment - 8
+
+- Import certificate command 
+
+* aws acm import-certificate \
+*   --region us-east-1 \
+*   --profile demo \
+*   --certificate fileb://demo_yashwanthbehara_me.crt \
+*   --private-key fileb://demo_yashwanthbehara_me.key \
+*   --certificate-chain fileb://demo_yashwanthbehara_me.ca-bundle
