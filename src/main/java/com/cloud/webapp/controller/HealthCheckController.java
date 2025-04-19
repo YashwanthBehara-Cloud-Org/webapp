@@ -51,30 +51,31 @@ public class HealthCheckController {
                 .build();
     }
 
-    // @GetMapping("/cicd")
-    // public ResponseEntity<Void> performCicdHealthCheck(HttpServletRequest request) {
+    @GetMapping("/cicd")
+    public ResponseEntity<Void> performCicdHealthCheck(HttpServletRequest request) {
 
-    //     Timer.Sample sample = Timer.start(meterRegistry);
-    //     meterRegistry.counter("api.healthz.getHealthz.count").increment(); // Reusing metric
+        Timer.Sample sample = Timer.start(meterRegistry);
+        meterRegistry.counter("api.healthz.getHealthz.count").increment(); // Reusing metric
 
-    //     validateRequest(request);
+        validateRequest(request);
 
-    //     logger.info("Get - CICD health check endpoint hit");
+        logger.info("Get - CICD health check endpoint hit");
 
-    //     try {
-    //         healthCheckService.performHealthCheck();
-    //     } catch (Exception e) {
-    //         logger.error("Get - CICD health check failed: {}", e.getMessage());
-    //         throw new DataBaseConnectionException("Database connection failed", e);
-    //     } finally {
-    //         sample.stop(meterRegistry.timer("api.get.healthz.timer")); // Reusing timer
-    //     }
+        try {
+            healthCheckService.performHealthCheck();
+        } catch (Exception e) {
+            logger.error("Get - CICD health check failed: {}", e.getMessage());
+            throw new DataBaseConnectionException("Database connection failed", e);
+        } finally {
+            sample.stop(meterRegistry.timer("api.get.healthz.timer")); // Reusing timer
+        }
 
-    //     return ResponseEntity.ok()
-    //             .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-    //             .header(HttpHeaders.PRAGMA, "no-cache")
-    //             .build();
-    // }
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+                .header(HttpHeaders.PRAGMA, "no-cache")
+                .build();
+    }
+     
     private void validateRequest(HttpServletRequest request) {
         if (!request.getParameterMap().isEmpty()) {
             throw new IllegalArgumentException("Query parameters are not allowed");
