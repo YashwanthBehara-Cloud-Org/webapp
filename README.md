@@ -396,7 +396,32 @@ To configure **Auto Scaling**, **Application Load Balancer (ALB)**, and **Domain
 
 ### Assignment - 8
 
-- Import certificate command 
+## 📋 Overview -> 
+
+1. Launch Template Version Update
+2. ASG Instance Refresh
+3. KMS Key Setup ( RDS, EC2, S3, Secret Manager )
+4. Random Password for RDS and encrypted it using KMS Key and stored it in Secrets Manager
+5. Purchased SSL Certificate from Namecheap and added it to AWS Certificate Manager using the AWS CLI
+
+<!-- Detailed Explanation -->
+
+1. **GitHub Actions CI/CD** that runs on **Pull Request merged** and:
+   
+   - Creates a new Launch Template version using the new AMI
+   - Triggers an Auto Scaling **instance refresh** and waits for completion
+
+2. **KMS encryption** of all sensitive resources via Terraform:
+   - **EC2**, **RDS**, **S3**, and **Secrets Manager** each use their own Customer‑Managed KMS key
+   - 90‑day automatic rotation enabled
+
+3. **Secret Manager** to store the random‑generated RDS password, encrypted under its custom KMS key, and retrieved at instance launch.
+
+4. **TLS / SSL Certificate setup**:
+   - DEV environment uses ACM‑provisioned certificates
+   - DEMO environment uses an externally‑purchased cert (e.g. Namecheap) imported into ACM, Import SSL certificate command 
+   - Load Balancer exclusively serves HTTPS
+   - No direct HTTP → HTTPS redirection or direct‑to‑EC2 HTTP access
 
 * aws acm import-certificate \
 *   --region us-east-1 \
@@ -404,3 +429,4 @@ To configure **Auto Scaling**, **Application Load Balancer (ALB)**, and **Domain
 *   --certificate fileb://demo_yashwanthbehara_me.crt \
 *   --private-key fileb://demo_yashwanthbehara_me.key \
 *   --certificate-chain fileb://demo_yashwanthbehara_me.ca-bundle
+
