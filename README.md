@@ -1,3 +1,9 @@
+### Infrastructure 
+
+![Cloud6225_Arch](https://github.com/user-attachments/assets/00591c8b-5507-4e7f-a588-e5a35c55711d)
+
+
+
 ### Assignment-1 Running guide   
 
 ## Prerequisites
